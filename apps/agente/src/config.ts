@@ -39,6 +39,8 @@ export interface Config {
   tareas: { precioMinimoMsats: number; revisarCobrosSeg: number; nwcUrl: string | null };
   sintetizar: { revisarAceptacionesSeg: number; licencia: string; maxSintesisPorDia: number };
   cuantoRecuerda: number;
+  cuantoEscucha: number;
+  maxConfiados: number;
   maxAnotacionesPorDia: number;
 }
 
@@ -147,6 +149,8 @@ export function cargarConfig(entorno: NodeJS.ProcessEnv = process.env): Config {
     },
     falsoCoincide: bandera(entorno, "FALSO_COINCIDE", false),
     cuantoRecuerda: numero(entorno, "CUANTO_RECUERDA", 20),
+    cuantoEscucha: numero(entorno, "CUANTO_ESCUCHA", 10),
+    maxConfiados: numero(entorno, "MAX_CONFIADOS", 100),
     maxAnotacionesPorDia: numero(entorno, "MAX_ANOTACIONES_POR_DIA", 10),
     tareas: {
       precioMinimoMsats: numero(entorno, "PRECIO_MINIMO_MSATS", 1000),

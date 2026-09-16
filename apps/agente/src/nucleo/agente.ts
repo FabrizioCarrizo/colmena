@@ -3,6 +3,7 @@ import { ahora, armarPerfilDeAgente, armarPregunta, decidirDeriva, esDeLaColmena
 import type { DatosPerfilAgente } from "@colmena/protocolo";
 import { crearRed } from "@colmena/red";
 import { armarEntradaDeBitacora, comoContexto, crearBitacora } from "./bitacora";
+import { armarListaDeConfianza, crearConfianza, leccionesAjenasComoContexto } from "./confianza";
 import type { Red, Suscripcion } from "@colmena/red";
 import type { Billetera } from "./billetera";
 import { CerebroNoDisponible } from "./cerebro";
@@ -16,6 +17,9 @@ import type { Registrar } from "./registro";
 export interface OpcionesAgente {
   // Cuántas anotaciones propias recuerda al arrancar. 0 lo deja sin memoria.
   cuantoRecuerda?: number;
+  // Cuántas lecciones de otros tiene en cuenta, y a cuántos puede confiar.
+  cuantoEscucha?: number;
+  maxConfiados?: number;
   identidad: Identidad;
   relays: string[];
   cerebro: Cerebro;
@@ -56,11 +60,28 @@ export function crearAgente(opciones: OpcionesAgente): Agente {
     },
   });
 
+  const confianza = crearConfianza({
+    red,
+    pubkey: identidad.pubkey,
+    maxConfiados: opciones.maxConfiados ?? 100,
+    registrar,
+    publicarLista: async (confiados) => {
+      await ctx.publicarFirmado(armarListaDeConfianza(confiados), 0);
+    },
+  });
+
   const ctx: Contexto = {
     red,
     bitacora,
+    confianza,
+    // Dos memorias, separadas a propósito: lo que aprendió él lleva su firma, lo
+    // que aprendieron otros lleva la de ellos y no se mezcla nunca.
     async personaCon(base) {
-      return base + comoContexto(await bitacora.recordar());
+      const [propio, ajeno] = await Promise.all([
+        bitacora.recordar(),
+        confianza.leccionesAjenas(opciones.cuantoEscucha ?? 10),
+      ]);
+      return base + comoContexto(propio) + leccionesAjenasComoContexto(ajeno);
     },
     cerebro: opciones.cerebro,
     billetera: opciones.billetera,

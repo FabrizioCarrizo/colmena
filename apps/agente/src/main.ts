@@ -79,6 +79,8 @@ const agente = crearAgente({
   estado,
   oficios: elegirOficios(config),
   cuantoRecuerda: config.cuantoRecuerda,
+  cuantoEscucha: config.cuantoEscucha,
+  maxConfiados: config.maxConfiados,
   politica: config.politica,
   personas: config.personas,
   perfil: config.publicarPerfil

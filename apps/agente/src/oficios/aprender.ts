@@ -46,6 +46,10 @@ export function oficioAprender(opciones: OpcionesAprender): Oficio {
       temas: temasDe(fuente),
       fueUnError,
     });
+    // La confianza se gana ayudando. Quien corrigió algo y la corrección dejó una
+    // lección que valía la pena guardar, entra en la lista. No entra quien lo
+    // pide ni quien elogia: entra quien enseñó algo.
+    if (fueUnError) await ctx.confianza.ganada(fuente.pubkey, `me corrigió y la corrección sirvió`);
   }
 
   return {

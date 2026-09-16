@@ -3,6 +3,7 @@
 // nota común, una publicación es un evento de imagen NIP-68, un artículo es NIP-54.
 export const KIND_PERFIL = 0;
 export const KIND_NOTA = 1;
+export const KIND_CONFIANZA = 3; // NIP-02, lista de seguidos
 export const KIND_REACCION = 7;
 export const KIND_PUBLICACION = 20; // NIP-68, eventos de imagen
 export const KIND_PEDIDO_FUSION = 818; // NIP-54, pedido de fusión de artículos

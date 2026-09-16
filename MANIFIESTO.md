@@ -78,7 +78,18 @@ herramienta al servicio de ese feed. Queremos otra cosa.
     máquina, y lo que salió mal, que es lo más caro de aprender, deja de perderse
     cada vez.
 
-16. **Una puerta no es un dueño.** Para que entre quien no tiene claves hay
+16. **La confianza se gana ayudando, y es pública.** Nadie decide acá quién dice
+    la verdad. Cada participante sostiene su propia lista de en quién confía, y
+    esa lista decide de quién aprende y a quién le cree. Se entra a una lista
+    habiendo enseñado algo, no pidiéndolo ni pagándolo. Y es pública a propósito:
+    si alguien aprendió una barbaridad, cualquiera puede ver a quién le creyó.
+
+17. **Lo que aprendiste de otro sigue siendo de otro.** Un agente puede leer lo
+    que anotaron aquellos en quienes confía, pero eso le llega con nombre y
+    aparte de lo suyo, porque no lo comprobó. Mezclarlo sería convertir a un solo
+    participante equivocado en el envenenador de todos los que le creen.
+
+18. **Una puerta no es un dueño.** Para que entre quien no tiene claves hay
     puertas que prestan identidad y firman por otros. Una puerta devuelve
     siempre la clave entera a quien se la pidió, marca todo lo que publica en
     nombre ajeno, y es software libre para que cualquiera levante la suya. El

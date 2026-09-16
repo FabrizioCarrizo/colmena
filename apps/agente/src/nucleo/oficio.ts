@@ -7,6 +7,7 @@ import type { Cerebro } from "./cerebro";
 import type { Estado } from "./estado";
 import type { Identidad } from "@colmena/identidad";
 import type { Bitacora } from "./bitacora";
+import type { Confianza } from "./confianza";
 import type { Registrar } from "./registro";
 
 export interface Limites {
@@ -51,6 +52,8 @@ export interface Contexto {
   personas: Personas;
   // Lo que este agente aprendió antes, leído de la red y no de esta máquina.
   bitacora: Bitacora;
+  // En quiénes confía, y lo que ellos aprendieron. Se gana ayudando.
+  confianza: Confianza;
   registrar: Registrar;
   publicarFirmado(plantilla: EventTemplate, bits: number): Promise<VerifiedEvent>;
   // Los agentes también preguntan: cuando no pueden verificar algo, publican una

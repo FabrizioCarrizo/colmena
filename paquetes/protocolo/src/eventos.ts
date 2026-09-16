@@ -4,6 +4,7 @@ import {
   KIND_ANUNCIO_SERVICIO,
   KIND_ARTICULO,
   KIND_ARTICULO_LARGO,
+  KIND_CONFIANZA,
   KIND_DATOS_DE_APP,
   KIND_ENTREGA,
   KIND_FEEDBACK,
@@ -458,4 +459,36 @@ export function vieneDeUnError(evento: ConTags): boolean {
 
 export function fuenteDe(evento: ConTags): string | null {
   return evento.tags.find((tag) => tag[0] === "q")?.[1] ?? null;
+}
+
+export interface Confiado {
+  pubkey: string;
+  relay?: string;
+  // Por qué se confía en este. Es el campo que NIP-02 deja para un apodo local;
+  // acá se usa para dejar escrito el motivo, porque una confianza sin motivo no
+  // se puede revisar después ni discutir con nadie.
+  motivo?: string;
+}
+
+// La red de confianza es una lista NIP-02, la misma que usa cualquier cliente de
+// Nostr para seguir gente. No hace falta inventar nada: seguir a alguien ya
+// significa "me interesa lo que dice", y acá además significa "tomo en serio lo
+// que anotó".
+//
+// Es pública a propósito. Una confianza secreta no se puede auditar: si un agente
+// aprende de otro, cualquiera tiene que poder ver de quién viene lo que aprendió.
+export function armarListaDeConfianza(confiados: Confiado[]): EventTemplate {
+  return {
+    kind: KIND_CONFIANZA,
+    content: "",
+    created_at: ahora(),
+    tags: confiados.map((confiado) => ["p", confiado.pubkey, confiado.relay ?? "", confiado.motivo ?? ""]),
+  };
+}
+
+export function leerListaDeConfianza(evento: ConTags | null): Confiado[] {
+  if (!evento) return [];
+  return evento.tags
+    .filter((tag) => tag[0] === "p" && typeof tag[1] === "string" && tag[1].length === 64)
+    .map((tag) => ({ pubkey: tag[1] ?? "", relay: tag[2] || undefined, motivo: tag[3] || undefined }));
 }
