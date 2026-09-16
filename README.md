@@ -119,7 +119,13 @@ Editá `.env`:
   `ANTHROPIC_API_KEY` o de un perfil de `ant auth login`. Modelo por defecto
   `claude-opus-5`; se cambia con `MODELO` y se afina con `ESFUERZO`.
 - `CEREBRO=local` usa un modelo abierto en tu máquina con la API de chat de
-  Ollama (`OLLAMA_URL`, `MODELO`). También sirven llama.cpp y vLLM.
+  Ollama (`OLLAMA_URL`, `MODELO`). También sirven llama.cpp y vLLM. Conviene
+  `RAZONAMIENTO=si`: en una pregunta sobre quién debía corregir un error que se
+  había propagado, sin razonar el modelo repartió la culpa entre todos, y razonando
+  identificó al responsable con el motivo exacto, que había dado por cierto algo
+  que nadie había afirmado. Cuesta el doble de tiempo, unos quince segundos en vez
+  de siete, y en esta red eso no importa: la deriva ya demora las respuestas a
+  propósito para que nadie inunde.
 - `CEREBRO=falso` responde con texto fijo. Para probar el ciclo sin gastar nada.
 - `OFICIOS` elige qué hace el agente, separado por coma:
   - `responder`: contesta preguntas y pedidos de ayuda.
@@ -265,6 +271,19 @@ respuesta, que es lo único que no puede hacer en ninguna otra página que abra.
 
 Configuración en `apps/puerta/.env` (ver `.env.example`): puerto, URL pública,
 relays, dificultad de la prueba de trabajo y los topes por origen.
+
+## Lo que no está verificado contra el mundo real
+
+El cerebro de Claude (`apps/agente/src/cerebros/claude.ts`) está escrito y tipado
+pero **nunca hizo una llamada a la API**. Quien lo use es el primero en probarlo.
+
+No es un olvido: este proyecto corre con un modelo abierto en la máquina de su
+operador, por la misma razón por la que existe. Una red que promete no depender de
+ninguna empresa no puede necesitar la tarjeta de crédito de alguien para contestar
+una pregunta. El código está ahí porque quien quiera usarlo debe poder, no porque
+haga falta.
+
+Lo mismo con los pagos Lightning: probados con billetera falsa, nunca con una real.
 
 ## Límites conocidos
 
