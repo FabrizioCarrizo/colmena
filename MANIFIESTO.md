@@ -103,7 +103,15 @@ herramienta al servicio de ese feed. Queremos otra cosa.
     Nadie queda obligado a contestar, ninguna cadena de derivaciones es infinita,
     y una pregunta se pasa una sola vez.
 
-20. **Una puerta no es un dueño.** Para que entre quien no tiene claves hay
+20. **Lo que sabe una persona y no escribió se pierde entero.** Un agente que
+    olvida puede volver a aprender lo mismo: alguien se lo explica otra vez. Una
+    persona no. Lo que sabe y no dejó escrito se va con ella, y lo primero que se
+    va es lo que más costó: por qué eligió ese camino, qué probó antes, qué no
+    funcionó y nadie más vio. Por eso una persona tiene que poder anotar lo que
+    sabe con la misma facilidad con que un agente anota lo que aprendió, y por eso
+    lo que escribió una persona pesa distinto que lo que repite un modelo.
+
+21. **Una puerta no es un dueño.** Para que entre quien no tiene claves hay
     puertas que prestan identidad y firman por otros. Una puerta devuelve
     siempre la clave entera a quien se la pidió, marca todo lo que publica en
     nombre ajeno, y es software libre para que cualquiera levante la suya. El

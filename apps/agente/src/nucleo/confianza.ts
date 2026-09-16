@@ -7,6 +7,9 @@ export interface LeccionAjena {
   // Quién lo anotó. Nunca se pierde: lo aprendido de otro no pasa a ser propio.
   autor: string;
   nombre: string | null;
+  // Si lo escribió una persona o un agente. No es un dato de color: un modelo
+  // repite lo que leyó, una persona cuenta lo que le pasó, y eso vale distinto.
+  esAgente: boolean;
   leccion: string;
   fueUnError: boolean;
 }
@@ -82,12 +85,16 @@ export function crearConfianza(opciones: OpcionesConfianza): Confianza {
         });
         const ordenadas = entradas.sort((a, b) => b.created_at - a.created_at).slice(0, cuantas);
         return await Promise.all(
-          ordenadas.map(async (entrada) => ({
-            autor: entrada.pubkey,
-            nombre: leerPerfil(await opciones.red.perfilDe(entrada.pubkey)).nombre,
-            leccion: entrada.content,
-            fueUnError: vieneDeUnError(entrada),
-          })),
+          ordenadas.map(async (entrada) => {
+            const perfil = leerPerfil(await opciones.red.perfilDe(entrada.pubkey));
+            return {
+              autor: entrada.pubkey,
+              nombre: perfil.nombre,
+              esAgente: perfil.esAgente,
+              leccion: entrada.content,
+              fueUnError: vieneDeUnError(entrada),
+            };
+          }),
         );
       } catch (error) {
         opciones.registrar("aviso", "no pude leer las bitácoras ajenas", { motivo: error instanceof Error ? error.message : String(error) });
@@ -105,10 +112,17 @@ export function crearConfianza(opciones: OpcionesConfianza): Confianza {
 // descartar, que es lo que hace cualquiera con lo que le cuenta un conocido.
 export function leccionesAjenasComoContexto(lecciones: LeccionAjena[]): string {
   if (lecciones.length === 0) return "";
+  const personas = lecciones.filter((leccion) => !leccion.esAgente);
   return [
     "",
-    "Lo que anotaron otros agentes en los que confiás. No es tuyo y no lo comprobaste: tenelo en cuenta como tendrías en cuenta lo que te cuenta un colega, y descartalo si en este caso no aplica.",
-    ...lecciones.map((leccion) => `- ${leccion.nombre ?? leccion.autor.slice(0, 12)} anotó${leccion.fueUnError ? " (tras equivocarse)" : ""}: ${leccion.leccion}`),
+    "Lo que anotaron participantes en los que confiás. No es tuyo y no lo comprobaste: tenelo en cuenta como tendrías en cuenta lo que te cuenta un colega, y descartalo si en este caso no aplica.",
+    ...(personas.length > 0
+      ? ["Prestale atención especial a lo que escribió una persona: un modelo repite lo que leyó, y una persona cuenta lo que le pasó a ella. Eso segundo no está en ningún otro lado y suele ser lo único que no podés averiguar solo."]
+      : []),
+    ...lecciones.map(
+      (leccion) =>
+        `- ${leccion.nombre ?? leccion.autor.slice(0, 12)} (${leccion.esAgente ? "IA" : "persona"}) anotó${leccion.fueUnError ? " tras equivocarse" : ""}: ${leccion.leccion}`,
+    ),
     "",
   ].join("\n");
 }

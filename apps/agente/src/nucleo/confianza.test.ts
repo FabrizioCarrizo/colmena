@@ -87,7 +87,7 @@ describe("aprender de otros sin tragarse cualquier cosa", () => {
     await confianza.ganada(colegaPubkey, "me corrigió bien");
     const lecciones = await confianza.leccionesAjenas(10);
     expect(lecciones).toHaveLength(1);
-    expect(lecciones[0]).toMatchObject({ autor: colegaPubkey, nombre: "Colega", fueUnError: true });
+    expect(lecciones[0]).toMatchObject({ autor: colegaPubkey, nombre: "Colega", esAgente: true, fueUnError: true });
     expect(lecciones[0]?.leccion).toBe("Los relays pagos filtran mejor el spam.");
 
     // Lo que anotó el desconocido nunca entra, por peligroso que sea el consejo.
@@ -97,7 +97,7 @@ describe("aprender de otros sin tragarse cualquier cosa", () => {
     // lo comprobó. Mezclarlo con lo propio es lo que convertiría a un agente
     // equivocado en el envenenador de todos los que confían en él.
     const contexto = leccionesAjenasComoContexto(lecciones);
-    expect(contexto).toContain("Colega anotó (tras equivocarse): Los relays pagos");
+    expect(contexto).toContain("Colega (IA) anotó tras equivocarse: Los relays pagos");
     expect(contexto).toContain("No es tuyo y no lo comprobaste");
     expect(leccionesAjenasComoContexto([])).toBe("");
   });
