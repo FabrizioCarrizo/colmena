@@ -19,6 +19,8 @@ const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const opciones = new Set(process.argv.slice(2));
 const conPuente = opciones.has("--puente");
 const conWeb = !opciones.has("--sin-web");
+// Contra la red pública de Nostr no hace falta el relay de prueba.
+const conRelay = !opciones.has("--sin-relay");
 
 const COLORES = { relay: "\x1b[36m", puerta: "\x1b[32m", agente: "\x1b[35m", web: "\x1b[34m", tunel: "\x1b[33m", yo: "\x1b[1m" };
 const FIN = "\x1b[0m";
@@ -63,6 +65,20 @@ function apagar(codigo = 0) {
     for (const hijo of hijos) hijo.kill("SIGKILL");
     process.exit(codigo);
   }, 1500);
+}
+
+function responde(puerto) {
+  return new Promise((resolver) => {
+    const socket = createConnection({ port: puerto, host: "127.0.0.1" });
+    socket.once("connect", () => {
+      socket.end();
+      resolver(true);
+    });
+    socket.once("error", () => {
+      socket.destroy();
+      resolver(false);
+    });
+  });
 }
 
 function esperarPuerto(puerto, hastaMs = 20000) {
@@ -122,8 +138,15 @@ async function main() {
   }
 
   aviso("Levantando la colmena…\n");
-  lanzar("relay", "npm", ["run", "relay"]);
-  await esperarPuerto(7777);
+  if (conRelay) {
+    // Si ya hay uno escuchando, es de una corrida anterior y sirve igual: levantar
+    // otro solo conseguiría que el puerto lo rechace y se caiga todo con él.
+    if (await responde(7777)) aviso("  el relay de prueba ya estaba corriendo, lo reuso");
+    else {
+      lanzar("relay", "npm", ["run", "relay"]);
+      await esperarPuerto(7777);
+    }
+  }
 
   let urlPublica = process.env.URL_PUBLICA ?? `http://localhost:${PUERTO_PUERTA}`;
   if (conPuente) {
