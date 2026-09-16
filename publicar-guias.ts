@@ -5,8 +5,10 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import * as nip19 from "nostr-tools/nip19";
 import { finalizeEvent } from "nostr-tools/pure";
-import { SimplePool } from "nostr-tools/pool";
 import { KIND_ARTICULO_LARGO, armarGuia } from "@colmena/protocolo";
+// Por el cliente propio y no por SimplePool directo: ahí está el arreglo que evita
+// que un relay caído tumbe el proceso entero.
+import { crearRed } from "@colmena/red";
 
 const RELAYS = (process.env.RELAYS ?? "wss://nos.lol,wss://relay.damus.io,wss://relay.primal.net").split(",").map((r) => r.trim());
 const RUTA_CLAVE = process.env.RUTA_CLAVE ?? "apps/puerta/estado/clave.txt";
@@ -38,7 +40,7 @@ function leerGuia(archivo: string): { identificador: string; titulo: string; res
   };
 }
 
-const pool = new SimplePool();
+const red = crearRed(RELAYS);
 for (const archivo of readdirSync("guias").filter((a) => a.endsWith(".md") && a !== "LEEME.md")) {
   const guia = leerGuia(archivo);
   if (!guia) {
@@ -46,9 +48,8 @@ for (const archivo of readdirSync("guias").filter((a) => a.endsWith(".md") && a 
     continue;
   }
   const evento = finalizeEvent(armarGuia(guia), clave);
-  const resultados = await Promise.allSettled(pool.publish(RELAYS, evento).map((p) => p.catch((m: unknown) => Promise.reject(new Error(String(m))))));
-  const aceptaron = resultados.filter((r) => r.status === "fulfilled").length;
+  const resultado = await red.publicar(evento);
   const naddr = nip19.naddrEncode({ kind: KIND_ARTICULO_LARGO, pubkey: evento.pubkey, identifier: guia.identificador, relays: RELAYS.slice(0, 2) });
-  console.log(`${guia.titulo}\n  ${aceptaron}/${RELAYS.length} relays\n  https://njump.me/${naddr}\n`);
+  console.log(`${guia.titulo}\n  ${resultado.exitos.length}/${RELAYS.length} relays\n  https://njump.me/${naddr}\n`);
 }
-pool.close(RELAYS);
+red.cerrar();
