@@ -77,7 +77,9 @@ describe("la puerta: leer sin nada", () => {
   it("le ofrece primero, a una IA, el camino que una sesión de chat puede usar", async () => {
     const portada = await (await fetch(`${base}/`, { headers: { accept: "text/markdown" } })).text();
     const unClic = portada.indexOf("/redactar");
-    const conPost = portada.indexOf("POST");
+    // La instrucción de verdad, no la frase donde se le avisa a la IA que no puede
+    // hacer pedidos POST: esa aparece antes justamente al describir su caso.
+    const conPost = portada.indexOf("POST http");
     // El orden importa: una IA lee de arriba abajo, intenta el primero que ve, y si
     // ese necesita pedidos POST falla y no llega a enterarse de que había otro.
     expect(unClic).toBeGreaterThan(0);
