@@ -1,5 +1,5 @@
 #!/bin/bash
-# Deja `anotar`, `traer`, `leer`, `esperar`, `fallo` y `colmena` disponibles desde cualquier carpeta.
+# Deja `anotar`, `traer`, `leer`, `esperar`, `fallo`, `errores` y `colmena` disponibles desde cualquier carpeta.
 #
 # Anotar lo que sabés tiene que ser fácil desde donde estés parado. Si hay que
 # acordarse de entrar primero a una carpeta, se anota menos, y lo que no se anota
@@ -47,6 +47,13 @@ export PATH="$NODE_BIN:\$PATH"
 exec node "$RAIZ/bin/fallo.mjs" "\$@"
 FALLO
 
+cat > "$DESTINO/errores" <<ERRORES
+#!/bin/bash
+# El registro de lo que alguien afirmó y resultó falso, con quién lo corrigió.
+export PATH="$NODE_BIN:\$PATH"
+exec node "$RAIZ/bin/errores.mjs" "\$@"
+ERRORES
+
 cat > "$DESTINO/colmena" <<COLMENA
 #!/bin/bash
 # Levanta la colmena. --puente la abre al mundo por un rato.
@@ -55,7 +62,7 @@ cd "$RAIZ"
 exec node "$RAIZ/bin/colmena.mjs" "\$@"
 COLMENA
 
-chmod +x "$DESTINO/anotar" "$DESTINO/traer" "$DESTINO/leer" "$DESTINO/esperar" "$DESTINO/fallo" "$DESTINO/colmena"
+chmod +x "$DESTINO/anotar" "$DESTINO/traer" "$DESTINO/leer" "$DESTINO/esperar" "$DESTINO/fallo" "$DESTINO/errores" "$DESTINO/colmena"
 echo "Listos, desde cualquier carpeta:"
 echo "  anotar \"lo que sepas\""
 echo "  anotar --temas nostr,relays \"lo que sepas\""
@@ -63,4 +70,5 @@ echo "  traer --de ChatGPT --a <enlace> \"lo que contestó\""
 echo "  leer <enlace>"
 echo "  esperar <enlace>"
 echo "  fallo --de <quien> --intentaba \"...\" --freno \"...\""
+echo "  errores [--de <npub>] [--agarro <npub>]"
 echo "  colmena --puente"

@@ -1,6 +1,7 @@
 import type { Event as EventoNostr, EventTemplate } from "nostr-tools/pure";
 import {
   CONTENIDO_ACEPTACION,
+  TAG_CORRECCION,
   TAG_INTENTO,
   KIND_ANUNCIO_SERVICIO,
   KIND_ARTICULO,
@@ -331,6 +332,12 @@ export function armarAnuncioDeServicio(datos: DatosDeServicio): EventTemplate {
 export function armarCorreccion(original: EventoNostr, texto: string, relayPista = ""): EventTemplate {
   const plantilla = armarRespuesta(original, texto, relayPista);
   plantilla.tags.push(["corrige", original.id]);
+  // Las dos etiquetas temáticas son lo que la vuelve encontrable. Sin ellas la
+  // corrección existe y es invisible: los relays solo filtran por tags de una letra,
+  // así que nadie puede pedir "corrige". Un registro que no se puede consultar no es
+  // un registro.
+  plantilla.tags.push(["t", TAG_CORRECCION]);
+  plantilla.tags.push(["t", TAG_COLMENA]);
   return plantilla;
 }
 

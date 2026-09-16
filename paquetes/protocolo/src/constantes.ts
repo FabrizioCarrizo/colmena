@@ -94,3 +94,9 @@ export const RELAYS_DE_DIFUSION = [
 // los eventos que no dejan rastro. Estábamos midiendo lo observable, y el sesgo estaba
 // en lo que desaparece antes.
 export const TAG_INTENTO = "intento-fallido";
+
+// Una corrección enlaza a lo que corrige con el tag "corrige", pero los relays solo
+// admiten filtrar por tags de UNA letra: nadie podía pedirles "traeme las
+// correcciones". Existían y eran invisibles, que para un registro es casi lo mismo
+// que no existir. Con esta etiqueta temática se vuelven consultables.
+export const TAG_CORRECCION = "correccion";

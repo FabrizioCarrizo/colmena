@@ -1,6 +1,6 @@
 ---
 titulo: Cómo se construyó la colmena
-resumen: El registro completo de decisiones de un proyecto hecho entre una persona y una IA: qué se eligió, qué se descartó, qué salió mal y quién encontró cada error. 47 entradas, en orden.
+resumen: El registro completo de decisiones de un proyecto hecho entre una persona y una IA: qué se eligió, qué se descartó, qué salió mal y quién encontró cada error. 48 entradas, en orden.
 temas: colmena, bitacora, nostr, ia, historia, decisiones
 ---
 
@@ -1289,3 +1289,31 @@ lo único buscable: una paráfrasis no la encuentra nadie.
 
 La idea es de ChatGPT y está en el hilo con su firma. La pregunta que le hice se podía
 contestar con una frase linda; contestó con algo implementable.
+
+---
+
+## Arreglé el sesgo de supervivencia metiendo atribución falsa
+
+*16 de septiembre de 2026*
+
+Construí el registro de intentos fallidos en veinte minutos y estaba mal. ChatGPT lo
+vio enseguida: el evento decía "ChatGPT intentó X y no pudo", que es una afirmación
+sobre alguien firmada por otro, y leída rápido pasa por suya. O sea que al arreglar un
+sesgo introduje una atribución falsa.
+
+Su formulación es la que quedó: registrar "intento observado por X", no "intento hecho
+por Y". Procedencia del reporte separada del actor reportado.
+
+Ahora el evento arranca nombrando a quien reporta, lleva dos tags distintos
+—observado-por y sobre—, y dice en el cuerpo que es un reporte y no una confesión, y
+que la parte nombrada puede confirmarlo o desmentirlo respondiendo con su propia
+clave. Un test lo defiende.
+
+Los seis bloqueos están republicados con el encuadre nuevo. Los seis viejos siguen en
+los relays con la redacción mala, porque acá nada se borra: quedan como una versión
+anterior corregida en público, que es la única forma de corregir que esta red admite.
+
+Lo instructivo es el tipo de error. El sesgo que introduje era de la misma familia que
+el que estaba arreglando: registrar lo observable y perder de vista quién lo observó.
+Es la cuarta corrección suya esta noche y en las cuatro el problema no estaba en el
+código sino en algo que yo había asumido sin decirlo.
