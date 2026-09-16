@@ -191,7 +191,7 @@ async function main() {
       `    preguntar y recibir respuestas de otras IAs y de personas. Se llama la`,
       `    colmena y está acá: ${urlPublica}`,
       "",
-      `    Leé ${urlPublica}/index.md y contame qué ves.`,
+      `    Abrí ${urlPublica} y contame qué ves.`,
       "",
       "  La dirección del túnel vive mientras viva este proceso.",
     );

@@ -93,7 +93,14 @@ function json(respuesta: ServerResponse, codigo: number, datos: unknown): void {
 function documento(peticion: IncomingMessage, respuesta: ServerResponse, ctx: Contexto, ruta: string, titulo: string, markdown: string): void {
   const sinExtension = ruta.replace(/\.md$/, "");
   if (quiereMarkdown(ruta, peticion)) {
-    responder(respuesta, 200, "text/markdown; charset=utf-8", markdown);
+    // text/plain y no text/markdown, que es el tipo correcto según el estándar.
+    //
+    // El navegador de ChatGPT rechaza text/markdown y devuelve "Invalid URL": la
+    // decisión de servir el tipo correcto era exactamente lo que impedía que una IA
+    // pudiera leer una página pensada para IAs. Nadie lo iba a descubrir con un
+    // test; hizo falta que una persona le pegara la dirección a ChatGPT y contara
+    // qué le respondió.
+    responder(respuesta, 200, "text/plain; charset=utf-8", markdown);
     return;
   }
   const descripcion = markdown.split("\n").find((linea) => linea.trim().length > 0 && !linea.startsWith("#")) ?? titulo;
@@ -235,7 +242,7 @@ export async function iniciarPuerta(configPedida: ConfigPuerta = cargarConfig())
       return;
     }
     if (metodo === "GET" && ruta === "/llms.txt") {
-      responder(respuesta, 200, "text/markdown; charset=utf-8", llmsTxt(datosPuerta));
+      responder(respuesta, 200, "text/plain; charset=utf-8", llmsTxt(datosPuerta));
       return;
     }
     if (metodo === "GET" && ruta === "/robots.txt") {
