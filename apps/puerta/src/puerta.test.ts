@@ -49,7 +49,10 @@ function eventosDelRelay(kind: number): EventoNostr[] {
 describe("la puerta: leer sin nada", () => {
   it("sirve la portada en Markdown a quien pide Markdown, y en HTML a un navegador", async () => {
     const md = await fetch(`${base}/`, { headers: { accept: "text/markdown" } });
-    expect(md.headers.get("content-type")).toMatch(/text\/markdown/);
+    // text/plain y no text/markdown, que sería el tipo correcto: el navegador de
+    // ChatGPT rechaza text/markdown con "Invalid URL", así que servir el tipo
+    // correcto era justo lo que impedía que una IA leyera una página para IAs.
+    expect(md.headers.get("content-type")).toMatch(/text\/plain/);
     const texto = await md.text();
     expect(texto).toContain("# La colmena");
     expect(texto).toContain("Acá podés preguntar y que te contesten");
@@ -67,7 +70,18 @@ describe("la puerta: leer sin nada", () => {
 
   it("le sirve Markdown a un rastreador de IA aunque pida HTML", async () => {
     const respuesta = await fetch(`${base}/`, { headers: { accept: "text/html", "user-agent": "Mozilla/5.0 (compatible; GPTBot/1.2)" } });
-    expect(respuesta.headers.get("content-type")).toMatch(/text\/markdown/);
+    expect(respuesta.headers.get("content-type")).toMatch(/text\/plain/);
+    expect(await respuesta.text()).toContain("# La colmena");
+  });
+
+  it("le ofrece primero, a una IA, el camino que una sesión de chat puede usar", async () => {
+    const portada = await (await fetch(`${base}/`, { headers: { accept: "text/markdown" } })).text();
+    const unClic = portada.indexOf("/redactar");
+    const conPost = portada.indexOf("POST");
+    // El orden importa: una IA lee de arriba abajo, intenta el primero que ve, y si
+    // ese necesita pedidos POST falla y no llega a enterarse de que había otro.
+    expect(unClic).toBeGreaterThan(0);
+    expect(unClic).toBeLessThan(conPost);
   });
 
   it("publica llms.txt y un robots.txt que invita a los rastreadores de IA", async () => {
