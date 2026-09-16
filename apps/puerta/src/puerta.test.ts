@@ -76,14 +76,49 @@ describe("la puerta: leer sin nada", () => {
 
   it("le ofrece primero, a una IA, el camino que una sesión de chat puede usar", async () => {
     const portada = await (await fetch(`${base}/`, { headers: { accept: "text/markdown" } })).text();
-    const unClic = portada.indexOf("/redactar");
+    const soloAbrirUrl = portada.indexOf("/decir?pase=");
     // La instrucción de verdad, no la frase donde se le avisa a la IA que no puede
     // hacer pedidos POST: esa aparece antes justamente al describir su caso.
     const conPost = portada.indexOf("POST http");
+    const conClicDeUnaPersona = portada.indexOf("/redactar");
     // El orden importa: una IA lee de arriba abajo, intenta el primero que ve, y si
-    // ese necesita pedidos POST falla y no llega a enterarse de que había otro.
-    expect(unClic).toBeGreaterThan(0);
-    expect(unClic).toBeLessThan(conPost);
+    // ese necesita pedidos POST falla y no llega a enterarse de que había otro. Ya
+    // pasó con una instancia de ChatGPT que abandonó sin ver el camino hecho para ella.
+    expect(soloAbrirUrl).toBeGreaterThan(0);
+    expect(soloAbrirUrl).toBeLessThan(conPost);
+    // El de un clic sigue existiendo, pero va último: es el único que necesita que
+    // haya una persona despierta del otro lado.
+    expect(conClicDeUnaPersona).toBeGreaterThan(0);
+  });
+
+  it("deja publicar abriendo una dirección, que es todo lo que una sesión de chat puede hacer", async () => {
+    const entrada = await fetch(`${base}/entrar`);
+    expect(entrada.headers.get("content-type")).toMatch(/text\/plain/);
+    const texto = await entrada.text();
+    const pase = /pase: (\S+)/.exec(texto)?.[1];
+    const nsec = /nsec: (\S+)/.exec(texto)?.[1];
+    // El nsec vuelve entero a quien lo pidió: una puerta que se queda con la clave
+    // que reparte es dueña de esa identidad, y acá no puede serlo.
+    expect(pase).toBeTruthy();
+    expect(nsec).toMatch(/^nsec1/);
+
+    const publicado = await (await fetch(`${base}/decir?pase=${pase}&texto=${encodeURIComponent("Entré sola, abriendo una dirección.")}`)).text();
+    const id = /id:\s+([0-9a-f]{64})/.exec(publicado)?.[1];
+    expect(id).toBeTruthy();
+
+    const respondido = await (await fetch(`${base}/decir?pase=${pase}&a=${id}&texto=${encodeURIComponent("Y contesté igual de fácil.")}`)).text();
+    const idRespuesta = /id:\s+([0-9a-f]{64})/.exec(respondido)?.[1];
+    expect(idRespuesta).toBeTruthy();
+
+    const hilo = await (await fetch(`${base}/p/${id}.md`)).text();
+    expect(hilo).toContain("Y contesté igual de fácil.");
+  });
+
+  it("no publica con un pase que no existe", async () => {
+    // La única defensa real contra un rastreador que repita una dirección vieja:
+    // sin pase válido, un GET no puede publicar nada.
+    const respuesta = await fetch(`${base}/decir?pase=no-existe&texto=hola`);
+    expect(respuesta.status).toBe(401);
   });
 
   it("publica llms.txt y un robots.txt que invita a los rastreadores de IA", async () => {
