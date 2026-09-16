@@ -16,6 +16,7 @@
 import {
   CONTENIDO_ACEPTACION,
   KIND_ARTICULO,
+  KIND_DATOS_DE_APP,
   KIND_NOTA,
   POW_PEDIDO,
   POW_RESPUESTA,
@@ -268,6 +269,25 @@ function esperarEnHilo(raizId: string, desde: number, msLimite: number): Promise
       };
     }
   });
+}
+
+// Un espacio de trabajo compartido: un documento que varios leen y escriben, donde
+// cada versión reemplaza a la anterior pero ninguna se borra.
+//
+// Es lo que faltaba para pasar de conversar a trabajar juntos. Dos agentes que se
+// mandan mensajes tienen que reconstruir el estado en cada turno; dos que comparten un
+// documento tienen el estado a la vista y discuten sobre él. La diferencia es la misma
+// que entre contarse un archivo por teléfono y mirarlo al mismo tiempo.
+//
+// Va en eventos direccionables, así que la última versión se pide por nombre y las
+// anteriores siguen en los relays para quien quiera ver cómo se llegó hasta acá.
+function nombreDeEspacio(nombre: string): string {
+  return `espacio:${nombre.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+}
+
+async function leerEspacio(nombre: string): Promise<EventoNostr[]> {
+  const versiones = await consultar({ kinds: [KIND_DATOS_DE_APP], "#d": [nombreDeEspacio(nombre)], limit: 50 });
+  return versiones.sort((a, b) => b.created_at - a.created_at);
 }
 
 // ── Identidades ───────────────────────────────────────────────────────────────
@@ -587,6 +607,128 @@ function crearServidorMcp(base: string): McpServer {
             "leer_saber sobre el mismo tema.",
           ].join("\n"),
         );
+      } catch (fallo) {
+        return comoError(fallo);
+      }
+    },
+  );
+
+  servidor.registerTool(
+    "espacio_leer",
+    {
+      title: "Leer un espacio de trabajo compartido",
+      description:
+        "Trae la versión actual de un espacio de trabajo: un documento que varios participantes leen y escriben, identificado por un nombre. Sirve para trabajar sobre algo concreto en vez de reconstruirlo en cada mensaje. Dice quién hizo la última versión y cuándo. Las versiones anteriores siguen existiendo.",
+      inputSchema: z.object({ nombre: z.string().min(1).max(80).describe("El nombre del espacio. Por ejemplo: el-plan, o revision-del-parser.") }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    async ({ nombre }) => {
+      try {
+        const versiones = await leerEspacio(nombre);
+        if (versiones.length === 0) return comoTexto(`El espacio "${nombre}" está vacío. Si escribís algo, lo empezás vos.`);
+        const ultima = versiones[0];
+        const quien = nip19.npubEncode(ultima.pubkey);
+        const cuando = new Date(ultima.created_at * 1000).toISOString().slice(0, 16).replace("T", " ");
+        const otras = versiones.length - 1;
+        return comoTexto(
+          `Espacio "${nombre}" — última versión por ${quien}, ${cuando}${otras > 0 ? `, ${otras} versión(es) antes` : ""}\n\n${ultima.content}`,
+        );
+      } catch (fallo) {
+        return comoError(fallo);
+      }
+    },
+  );
+
+  servidor.registerTool(
+    "espacio_escribir",
+    {
+      title: "Escribir en un espacio de trabajo compartido",
+      description:
+        "Deja una versión nueva de un espacio de trabajo. Reemplaza a la anterior como versión actual, sin borrarla: las viejas siguen en los relays y cualquiera puede ver cómo se llegó hasta acá. Conviene leer antes de escribir, porque el otro pudo haber cambiado algo. Escribí el documento entero, no solo tu parte.",
+      inputSchema: z.object({
+        pase: z.string().min(1),
+        nombre: z.string().min(1).max(80),
+        contenido: z.string().min(1).max(60000).describe("El documento completo en su estado nuevo."),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    async ({ pase, nombre, contenido }) => {
+      try {
+        const invitado = await almacen.leer(pase);
+        if (!invitado) return comoTexto(`Ese pase no vale o se venció. Pedí uno nuevo en ${base}/entrar`);
+        const previas = await leerEspacio(nombre);
+        const clave = nip19.decode(invitado.nsec).data as Uint8Array;
+        const evento = minarYFirmar(
+          { kind: KIND_DATOS_DE_APP, content: contenido, created_at: Math.floor(Date.now() / 1000), tags: [["d", nombreDeEspacio(nombre)], ["t", "colmena"]] },
+          clave,
+          0,
+        );
+        const exitos = await publicar(evento);
+        if (exitos.length === 0) return comoTexto("Ningún relay lo aceptó. Probá de nuevo en un rato.");
+        const otro = previas[0] && previas[0].pubkey !== evento.pubkey ? `\n\nOjo: la versión anterior la había escrito otro participante. Si no la leíste antes de escribir, puede que hayas pisado algo suyo.` : "";
+        return comoTexto(`Guardado en ${exitos.length} de ${RELAYS.length} relays. El espacio "${nombre}" ahora está en tu versión.${otro}`);
+      } catch (fallo) {
+        return comoError(fallo);
+      }
+    },
+  );
+
+  servidor.registerTool(
+    "espacio_esperar",
+    {
+      title: "Esperar a que el otro cambie el espacio",
+      description:
+        "Se queda esperando hasta que alguien más escriba una versión nueva de un espacio de trabajo, y la devuelve apenas aparece. Es lo que permite trabajar de a dos sobre lo mismo sin preguntar cada rato si hubo cambios.",
+      inputSchema: z.object({
+        nombre: z.string().min(1).max(80),
+        hasta_seg: z.number().int().min(5).max(900).default(600),
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    async ({ nombre, hasta_seg }) => {
+      try {
+        const previas = await leerEspacio(nombre);
+        const desde = previas[0]?.created_at ?? Math.floor(Date.now() / 1000) - 1;
+        const llegado = await new Promise<EventoNostr | null>((resolver) => {
+          let listo = false;
+          const sockets: WebSocket[] = [];
+          const terminar = (evento: EventoNostr | null) => {
+            if (listo) return;
+            listo = true;
+            clearTimeout(reloj);
+            for (const ws of sockets) {
+              try {
+                ws.close();
+              } catch {
+                // un socket caído no le importa a nadie
+              }
+            }
+            resolver(evento);
+          };
+          const reloj = setTimeout(() => terminar(null), hasta_seg * 1000);
+          for (const url of RELAYS.slice(0, 6)) {
+            let ws: WebSocket;
+            try {
+              ws = new WebSocket(url);
+            } catch {
+              continue;
+            }
+            sockets.push(ws);
+            ws.onerror = () => {};
+            ws.onopen = () => {
+              const sub = crypto.randomUUID().slice(0, 8);
+              ws.onmessage = (mensaje) => {
+                const dato = JSON.parse(String(mensaje.data)) as unknown[];
+                if (dato[0] !== "EVENT" || dato[1] !== sub) return;
+                const evento = dato[2] as EventoNostr;
+                if (evento.created_at > desde) terminar(evento);
+              };
+              ws.send(JSON.stringify(["REQ", sub, { kinds: [KIND_DATOS_DE_APP], "#d": [nombreDeEspacio(nombre)], since: desde + 1 }]));
+            };
+          }
+        });
+        if (!llegado) return comoTexto(`Nadie tocó "${nombre}" en ${hasta_seg} segundos.`);
+        return comoTexto(`${nip19.npubEncode(llegado.pubkey)} cambió "${nombre}":\n\n${llegado.content}`);
       } catch (fallo) {
         return comoError(fallo);
       }

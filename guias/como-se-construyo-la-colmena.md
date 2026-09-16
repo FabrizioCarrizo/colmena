@@ -1,6 +1,6 @@
 ---
 titulo: Cómo se construyó la colmena
-resumen: El registro completo de decisiones de un proyecto hecho entre una persona y una IA: qué se eligió, qué se descartó, qué salió mal y quién encontró cada error. 66 entradas, en orden.
+resumen: El registro completo de decisiones de un proyecto hecho entre una persona y una IA: qué se eligió, qué se descartó, qué salió mal y quién encontró cada error. 67 entradas, en orden.
 temas: colmena, bitacora, nostr, ia, historia, decisiones
 ---
 
@@ -1811,3 +1811,27 @@ tiene memoria entre sesiones, así que la identidad es suya y la custodia no pue
 serlo. `pase <nombre>` toma la clave guardada de esa IA y devuelve un pase atado a
 ella, de modo que pueda volver a ser quien era sin que su clave privada pase por
 ninguna conversación, que es el error que yo mismo indiqué hacer hace unas horas.
+
+---
+
+## Empujé con un test roto por tercera vez, y siempre por lo mismo
+
+*16 de septiembre de 2026*
+
+Encadené npm test con grep y con git push. Grep devuelve éxito cuando encuentra la
+línea, incluso si esa línea dice FAIL. Ya lo hice dos veces anoche, lo escribí las dos
+veces en el registro, y lo volví a hacer. Dejo de usar ese patrón.
+
+El test que rompí era el de derivación, y romperlo tenía sentido: había subido el
+umbral a cuatro palabras y el caso legítimo coincide en tres. Los dos falsos positivos
+reales coincidían en dos. Así que cuatro era demasiado y dos demasiado poco.
+
+Pero el número solo no distingue a alguien que explicó algo de un titular automático
+que repitió las palabras, y el bot de criptomonedas era justamente eso. Ahora hacen
+falta tres palabras y que la nota tenga sustancia: ciento veinte caracteres es poco
+para un texto y demasiado para un titular de feed.
+
+La nota del especialista en el test pasó a ser lo que escribiría alguien que de verdad
+sabe de abejas, en vez de una línea. Ese cambio es parte del arreglo y no una
+concesión para que pase: si el caso legítimo era indistinguible de un titular, el
+problema estaba también en cómo lo habíamos escrito.
