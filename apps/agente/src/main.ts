@@ -1,4 +1,5 @@
 import { existsSync } from "node:fs";
+import { prepararNode } from "@colmena/red/node";
 import { billeteraNwc } from "./billeteras/nwc";
 import { cerebroClaude } from "./cerebros/claude";
 import { cerebroFalso } from "./cerebros/falso";
@@ -60,6 +61,7 @@ function elegirBilletera(config: Config): Billetera {
   return billeteraFalsa();
 }
 
+prepararNode();
 if (existsSync(".env")) process.loadEnvFile(".env");
 const config = cargarConfig();
 const identidad = cargarOCrearIdentidad(config.rutaClave, config.nsec);

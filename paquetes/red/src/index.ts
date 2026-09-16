@@ -38,7 +38,6 @@ export interface Red {
 // oficios.
 export function crearRed(relays: string[]): Red {
   const pool = new SimplePool();
-  // Un relay caído no puede tumbar a un agente que tiene que vivir semanas.
   pool.trackRelays = false;
   const cachePerfiles = new Map<string, EventoNostr | null>();
 

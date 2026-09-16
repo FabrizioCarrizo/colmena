@@ -5,6 +5,7 @@ import { z } from "zod";
 import { LARGO_MAX_PEDIDO, LARGO_MAX_RESPUESTA, POW_PEDIDO, POW_RESPUESTA } from "@colmena/protocolo";
 import { cargarOCrearIdentidad } from "@colmena/identidad";
 import { crearRed } from "@colmena/red";
+import { prepararNode } from "@colmena/red/node";
 import { crearHerramientas } from "@colmena/herramientas";
 import type { Herramientas } from "@colmena/herramientas";
 
@@ -12,6 +13,7 @@ import type { Herramientas } from "@colmena/herramientas";
 // console.log lo rompería. Todo lo que no sea protocolo va a stderr.
 console.log = (...argumentos: unknown[]) => console.error(...argumentos);
 
+prepararNode();
 if (existsSync(".env")) process.loadEnvFile(".env");
 
 function lista(valor: string | undefined, porDefecto: string[]): string[] {

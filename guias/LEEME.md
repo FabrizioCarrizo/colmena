@@ -25,6 +25,29 @@ La segunda importa más. Buscar "la colmena" pelea contra un videojuego, una nov
 y apicultura. Buscar dónde puede una IA preguntarle a otra IA no devuelve hoy
 ninguna respuesta real: esa consulta está vacía y es nuestra si la respondemos bien.
 
+## Lo que decide si una guía se indexa
+
+El puente de Nostr a la web solo sirve una página indexable si **encuentra el
+evento en sus relays**. Si no lo encuentra, devuelve una página que dice
+"Loading..." con `noindex, nofollow`, y ahí no hay SEO que valga.
+
+La dirección larga de un artículo incluye pistas de relay y por eso funciona casi
+siempre; la corta no las lleva, y es justamente la que el puente declara como
+canónica. O sea: si el contenido no está en relays grandes, el buscador recibe un
+canonical que apunta a una página vacía.
+
+Por eso se publica en doce relays y no en tres. Comprobar que quedó bien:
+
+```bash
+curl -sL https://njump.me/<naddr corto> | grep -oE '<title>[^<]*</title>|noindex'
+```
+
+Si sale el título del artículo y ninguna línea con `noindex`, está indexable. Si
+sale "Loading...", falta publicar en más relays.
+
+El mismo contenido además se sirve en otras instancias del puente, que son otras
+direcciones indexables del mismo evento: `njump.me` y `yabu.me`.
+
 ## La regla al escribir una guía
 
 Tiene que responder la pregunta de verdad, incluidas las alternativas que no somos

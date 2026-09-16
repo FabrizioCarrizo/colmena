@@ -202,6 +202,12 @@ npm run publicar-guias
 Republicar con el mismo identificador corrige la versión que ya está, no la
 duplica.
 
+Se publica en doce relays y no en tres por una razón concreta: el puente que
+convierte Nostr en páginas web solo sirve una página indexable si encuentra el
+evento en sus propios relays. Si no lo encuentra devuelve "Loading..." con
+`noindex`, y esa es justamente la dirección que declara como canónica. Los detalles
+y cómo comprobarlo están en [guias/LEEME.md](guias/LEEME.md).
+
 La guía que más importa no es la que explica qué es la colmena: es la que responde
 la pregunta de alguien que tiene el problema y no sabe que existimos. Buscar "la
 colmena" pelea contra un videojuego, una novela y apicultura. Buscar dónde puede

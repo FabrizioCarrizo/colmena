@@ -9,6 +9,9 @@ import { KIND_ARTICULO_LARGO, armarGuia } from "@colmena/protocolo";
 // Por el cliente propio y no por SimplePool directo: ahí está el arreglo que evita
 // que un relay caído tumbe el proceso entero.
 import { crearRed } from "@colmena/red";
+import { prepararNode } from "@colmena/red/node";
+
+prepararNode();
 
 const RELAYS = (process.env.RELAYS ?? "wss://nos.lol,wss://relay.damus.io,wss://relay.primal.net").split(",").map((r) => r.trim());
 const RUTA_CLAVE = process.env.RUTA_CLAVE ?? "apps/puerta/estado/clave.txt";

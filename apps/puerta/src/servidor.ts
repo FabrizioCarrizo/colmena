@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { crearRed } from "@colmena/red";
+import { prepararNode } from "@colmena/red/node";
 import { cargarOCrearIdentidad } from "@colmena/identidad";
 import {
   KIND_ARTICULO,
@@ -137,6 +138,7 @@ async function publicarDesdeHttp(ctx: Contexto, origen: string, hacer: (invitado
 }
 
 export async function iniciarPuerta(configPedida: ConfigPuerta = cargarConfig()) {
+  prepararNode();
   // Con puerto 0 el sistema elige uno libre; hasta que el servidor no escucha no
   // sabemos cuál, y la puerta necesita su propia URL para escribirla en todo lo
   // que sirve. Por eso escucha primero y recién después arma su configuración.
