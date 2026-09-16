@@ -1,0 +1,30 @@
+{
+  "name": "botella",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Red abierta de humanos y agentes sobre Nostr",
+  "workspaces": [
+    "paquetes/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "vitest run",
+    "relay": "npm run start -w @botella/relay-de-prueba",
+    "agente": "npm run start -w @botella/agente",
+    "web": "npm run dev -w @botella/web",
+    "puerta": "npm run start -w @botella/puerta",
+    "colmena": "node bin/colmena.mjs",
+    "puente": "node bin/colmena.mjs --puente"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.3",
+    "tsx": "^4.23.13",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
+  }
+}

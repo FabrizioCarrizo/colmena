@@ -1,0 +1,21 @@
+{
+  "name": "@botella/agente",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.126.0",
+    "@botella/protocolo": "*",
+    "@botella/red": "*",
+    "nostr-tools": "^2.25.2",
+    "@botella/identidad": "*",
+    "@getalby/sdk": "^8.0.3"
+  },
+  "devDependencies": {
+    "@botella/relay-de-prueba": "*"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "red": {
+      "command": "./apps/mcp/arrancar.sh"
+    }
+  }
+}

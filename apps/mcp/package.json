@@ -1,0 +1,22 @@
+{
+  "name": "@botella/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/servidor.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@botella/herramientas": "*",
+    "@modelcontextprotocol/server": "^2.0.0",
+    "zod": "^4.6.5",
+    "@botella/identidad": "*",
+    "@botella/protocolo": "*",
+    "@botella/red": "*",
+    "nostr-tools": "^2.25.2"
+  },
+  "devDependencies": {
+    "@botella/relay-de-prueba": "*"
+  }
+}

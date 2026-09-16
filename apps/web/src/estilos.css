@@ -1,0 +1,386 @@
+:root {
+  color-scheme: light dark;
+  --fondo: #f6f4ef;
+  --papel: #ffffff;
+  --tinta: #1d1b17;
+  --tinta-suave: #6b665c;
+  --borde: #e2ddd2;
+  --acento: #0f6e56;
+  --acento-tinta: #ffffff;
+  --aviso: #3b5bdb;
+  --error: #b42318;
+  --agente: #6b4fbb;
+  --agente-fondo: #ede9f8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #17161a;
+    --papel: #201f24;
+    --tinta: #eeeae2;
+    --tinta-suave: #a39d92;
+    --borde: #34323a;
+    --acento: #3fbf99;
+    --acento-tinta: #101712;
+    --aviso: #8fa5ff;
+    --error: #ff8b7a;
+    --agente: #c3b3ff;
+    --agente-fondo: #2c2740;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--tinta);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+a {
+  color: var(--acento);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--borde);
+  background: var(--papel);
+}
+
+.nav .marca {
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--tinta);
+}
+
+.nav .secciones {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
+}
+
+.nav .secciones a {
+  text-decoration: none;
+  color: var(--tinta-suave);
+  padding: 0.25rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.nav .secciones a.activa {
+  color: var(--tinta);
+  border-bottom-color: var(--acento);
+}
+
+.nav .quien {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  color: var(--tinta-suave);
+  text-decoration: none;
+}
+
+.contenedor {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 4rem;
+}
+
+h1 {
+  font-size: 1.6rem;
+  margin: 0 0 0.5rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin: 2rem 0 0.75rem;
+}
+
+.ayuda {
+  color: var(--tinta-suave);
+  margin: 0 0 1rem;
+}
+
+.formulario {
+  display: grid;
+  gap: 1rem;
+}
+
+.campo {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.campo span {
+  font-size: 0.9rem;
+  color: var(--tinta-suave);
+}
+
+.campo small {
+  color: var(--tinta-suave);
+  justify-self: end;
+}
+
+textarea,
+input {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  background: var(--papel);
+  color: var(--tinta);
+  font: inherit;
+}
+
+.boton {
+  padding: 0.6rem 1.1rem;
+  border: 0;
+  border-radius: 8px;
+  background: var(--acento);
+  color: var(--acento-tinta);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  justify-self: start;
+}
+
+.boton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.boton.chico {
+  padding: 0.3rem 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: var(--papel);
+  color: var(--tinta);
+  border: 1px solid var(--borde);
+}
+
+.lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tarjeta {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+
+.tarjeta.raiz {
+  border-color: var(--acento);
+}
+
+.tarjeta.aceptada {
+  border-color: var(--acento);
+  box-shadow: inset 4px 0 0 var(--acento);
+}
+
+.encabezado,
+.pie {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--tinta-suave);
+}
+
+.encabezado {
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
+
+.pie {
+  margin-top: 0.6rem;
+}
+
+.cuerpo {
+  display: block;
+  color: var(--tinta);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.cuerpo:hover {
+  color: var(--acento);
+}
+
+.texto {
+  white-space: pre-wrap;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.autor {
+  color: var(--tinta);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.distintivo {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--agente);
+  background: var(--agente-fondo);
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+}
+
+.chip {
+  background: var(--fondo);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  padding: 0.1rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.chip.aceptada {
+  color: var(--acento);
+  border-color: var(--acento);
+}
+
+.chip.presupuesto {
+  font-weight: 600;
+}
+
+.pestanas {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.pestanas button {
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font: inherit;
+  color: var(--tinta-suave);
+  cursor: pointer;
+}
+
+.pestanas button.activa {
+  color: var(--acento-tinta);
+  background: var(--acento);
+  border-color: var(--acento);
+}
+
+.pestanas .filtro {
+  width: auto;
+  margin-left: auto;
+  min-width: 12rem;
+}
+
+.acciones {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+
+.votos {
+  min-width: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--tinta);
+}
+
+.aviso {
+  color: var(--aviso);
+}
+
+.error {
+  color: var(--error);
+}
+
+.mono {
+  font-family: ui-monospace, monospace;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+  background: var(--papel);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+}
+
+.mono.secreta {
+  border-color: var(--error);
+}
+
+time {
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .nav {
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  .pestanas .filtro {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+.imagen {
+  display: block;
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
+
+.titulo {
+  margin: 0.25rem 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.publicacion {
+  display: flex;
+  gap: 0.9rem;
+  align-items: flex-start;
+}
+
+.miniatura {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--fondo);
+}
+
+.enlace {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.articulo {
+  margin-top: 1rem;
+}
+
+.articulo .texto {
+  display: block;
+  margin-top: 0.75rem;
+}
