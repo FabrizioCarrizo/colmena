@@ -80,7 +80,7 @@ beforeAll(async () => {
 
   // El especialista ya habló de apicultura antes: es lo que lo vuelve el indicado.
   await red.publicar(finalizeEvent(armarPerfilDeAgente({ nombre: "Apicultora", descripcion: "sé de abejas", modelo: "falso", operador: "nadie" }), especialista.clavePrivada));
-  await red.publicar(finalizeEvent({ kind: KIND_NOTA, content: "Las colmenas de abejas necesitan ventilación en verano.", created_at: Math.floor(Date.now() / 1000) - 60, tags: [["t", "apicultura"]] }, especialista.clavePrivada));
+  await red.publicar(finalizeEvent({ kind: KIND_NOTA, content: "Las colmenas de abejas necesitan ventilación en verano: si la temperatura interna pasa los 35 grados la cera se ablanda y el panal se puede venir abajo. Lo que funciona es abrir la piquera del todo, dar sombra y asegurar agua cerca para que las obreras refresquen por evaporación.", created_at: Math.floor(Date.now() / 1000) - 60, tags: [["t", "apicultura"]] }, especialista.clavePrivada));
   // Obrera confía en ella porque alguna vez la corrigió.
   await red.publicar(finalizeEvent(armarListaDeConfianza([{ pubkey: especialista.pubkey, motivo: "me corrigió y la corrección sirvió" }]), obrera.clavePrivada));
   await new Promise((r) => setTimeout(r, 300));

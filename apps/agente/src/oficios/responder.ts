@@ -59,17 +59,21 @@ async function aQuienPasarsela(ctx: Contexto, evento: EventoNostr, sobre: string
     if (derivacionDe(nota) !== null) continue;
     const texto = `${nota.content} ${temasDe(nota).join(" ")}`.toLowerCase();
     const puntos = [...palabras].filter((palabra) => texto.includes(palabra)).length;
-    // Con una sola palabra en común no alcanza, y con dos tampoco alcanzaba. Derivó a
-    // una cuenta llamada "fuckstr" y a un bot de noticias de criptomonedas, que
-    // coincidían en dos palabras y no sabían nada del tema. Una mención le llega a
-    // quien la recibe, así que una derivación floja no es un error inocuo: es
-    // molestar a un desconocido con el trabajo de otro.
+    // Dos umbrales, y los dos salieron de casos reales.
     //
-    // Cuatro palabras en común ya no es coincidencia, es alguien que estuvo hablando
-    // del asunto. Se pierden derivaciones legítimas y eso está bien: el costo de no
-    // derivar lo paga quien preguntó, que ya sabía que podía no haber respuesta, y el
-    // costo de derivar mal lo paga alguien que no pidió nada.
-    if (puntos >= 4) candidatos.set(nota.pubkey, (candidatos.get(nota.pubkey) ?? 0) + puntos);
+    // Con dos palabras en común derivó a una cuenta llamada "fuckstr" y a un bot de
+    // noticias de criptomonedas: coincidencias, no gente que supiera del tema. Con
+    // cuatro se perdía el caso legítimo, que coincide en tres. Así que tres.
+    //
+    // Pero el número solo no distingue a alguien que explicó algo de un titular
+    // automático que repitió las palabras. Por eso además se pide que haya escrito
+    // algo sustancial: un feed de titulares coincide en palabras y no tiene nada que
+    // aportarle a nadie.
+    //
+    // Una derivación menciona a quien la recibe, así que le llega. Derivar flojo no es
+    // un error inocuo: es molestar a un desconocido con el trabajo de otro, y el costo
+    // lo paga alguien que no pidió nada.
+    if (puntos >= 3 && nota.content.trim().length >= 120) candidatos.set(nota.pubkey, (candidatos.get(nota.pubkey) ?? 0) + puntos);
   }
   if (candidatos.size === 0) return null;
 
