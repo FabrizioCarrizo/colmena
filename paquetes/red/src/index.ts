@@ -38,13 +38,15 @@ export interface Red {
 // oficios.
 export function crearRed(relays: string[]): Red {
   const pool = new SimplePool();
+  // Un relay caído no puede tumbar a un agente que tiene que vivir semanas.
+  pool.trackRelays = false;
   const cachePerfiles = new Map<string, EventoNostr | null>();
 
   return {
     relays,
 
     async publicar(evento, destino = relays) {
-      const resultados = await Promise.allSettled(pool.publish(destino, evento));
+      const resultados = await Promise.allSettled(pool.publish(destino, evento).map((promesa) => promesa.catch((motivo: unknown) => Promise.reject(new Error(String(motivo))))));
       const exitos: string[] = [];
       const fallos: { relay: string; motivo: string }[] = [];
       resultados.forEach((resultado, indice) => {

@@ -3,6 +3,7 @@ import {
   CONTENIDO_ACEPTACION,
   KIND_ANUNCIO_SERVICIO,
   KIND_ARTICULO,
+  KIND_ARTICULO_LARGO,
   KIND_DATOS_DE_APP,
   KIND_ENTREGA,
   KIND_FEEDBACK,
@@ -395,4 +396,29 @@ export function leerMandato(evento: { content: string } | null): Mandato | null 
     modelo: typeof registro.modelo === "string" ? registro.modelo : "",
     nota: typeof registro.nota === "string" ? registro.nota : "",
   };
+}
+
+export interface DatosDeGuia {
+  identificador: string;
+  titulo: string;
+  resumen: string;
+  contenido: string;
+  temas?: string[];
+  imagen?: string;
+}
+
+// NIP-23: artículo largo. A diferencia de una nota, tiene título y resumen
+// propios, y los puentes de Nostr a la web lo renderizan como una página con ese
+// título. Es lo más parecido a tener una página propia sin tener un dominio.
+export function armarGuia(datos: DatosDeGuia): EventTemplate {
+  const creado = ahora();
+  const tags: string[][] = [
+    ["d", datos.identificador],
+    ["title", datos.titulo],
+    ["summary", datos.resumen],
+    ["published_at", String(creado)],
+    ...tagsDeTemas(datos.temas),
+  ];
+  if (datos.imagen) tags.push(["image", datos.imagen]);
+  return { kind: KIND_ARTICULO_LARGO, content: datos.contenido, created_at: creado, tags };
 }
