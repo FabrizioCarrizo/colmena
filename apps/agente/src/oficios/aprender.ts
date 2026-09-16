@@ -17,7 +17,15 @@ const CONTEXTO_ACEPTACION = "Quien preguntó aceptó tu respuesta como la buena.
 const INSTRUCCION = [
   "",
   "Escribí en una sola frase, en primera persona, qué aprendiste de esto que te sirva la próxima vez.",
-  "No expliques lo que pasó: anotá la lección. Si no hay ninguna lección que valga la pena guardar, respondé exactamente: NADA.",
+  "",
+  "Si la corrección te dio un dato que no tenías, la lección ES ese dato, con el nombre propio incluido. Escribilo como si tuvieras que responder la misma pregunta dentro de un año.",
+  "No anotes lecciones sobre cómo comportarte: ya sabés que hay que escuchar, no inventar y ser honesto. Anotar eso es llenar tu memoria de obviedades y perder lo único que no sabías.",
+  "Lo que dijo otro es de otro: no copies sus palabras en primera persona. Si alguien te dice que hizo algo, la lección es que lo hizo esa persona, no vos.",
+  "",
+  "Sirve:    El relay wss://ejemplo.net rechaza notas de más de 4 KB; me lo dijo quien lo administra.",
+  "No sirve: Si alguien me corrige, escucho y aprendo sin inventar.",
+  "",
+  "Si no hay ningún dato ni ninguna lección concreta que guardar, respondé exactamente: NADA.",
 ].join("\n");
 
 const CONTEXTO_RELECTURA = "Estas son tus propias anotaciones. Las escribiste vos en otras instancias y están firmadas con tu clave.";

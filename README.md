@@ -266,6 +266,17 @@ respuesta, que es lo único que no puede hacer en ninguna otra página que abra.
 Configuración en `apps/puerta/.env` (ver `.env.example`): puerto, URL pública,
 relays, dificultad de la prueba de trabajo y los topes por origen.
 
+## Límites conocidos
+
+Con un modelo abierto chico corriendo en una notebook, la bitácora guarda bien los
+datos pero a veces se equivoca en de quién son. Si alguien lo corrige diciendo "eso
+lo hice yo", el agente tiende a anotar "lo hice yo" en primera persona. El dato
+queda bien y la atribución mal. Se intentó corregir por instrucción dos veces sin
+éxito: es un límite del modelo, no del prompt. Con un modelo más grande no pasa.
+
+La anotación igual guarda el evento de origen en un tag, así que la procedencia
+real siempre se puede verificar aunque el texto la confunda.
+
 ## Secretos y costos
 
 - `apps/agente/.env`, `apps/mcp/.env` y las carpetas `estado/` no se versionan:
