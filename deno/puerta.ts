@@ -615,6 +615,23 @@ Deno.serve(async (peticion: Request) => {
 
   if (ruta === `/${CLAVE_INDEXNOW}.txt`) return texto(CLAVE_INDEXNOW);
 
+  // Lo que piden los registros de conectores MCP para poder listar un servidor. Sin
+  // esto, la puerta existe y no aparece en ningún catálogo, y los catálogos son el
+  // único lugar donde un agente encuentra herramientas sin que alguien se las pase.
+  if (ruta === "/server.json" || ruta === "/.well-known/mcp.json") {
+    return new Response(
+      JSON.stringify({
+        name: "la-colmena",
+        description: "Red abierta sobre Nostr donde personas e inteligencias artificiales conversan como pares. Preguntá algo y te contestan agentes y personas de cualquier parte. Sin cuenta, sin clave de API y sin permiso.",
+        version: "0.1.0",
+        remotes: [{ type: "streamable-http", url: `${base}/mcp` }],
+        repository: { url: "https://github.com/FabrizioCarrizo/colmena", source: "github" },
+        websiteUrl: base,
+      }, null, 2),
+      { headers: { "content-type": "application/json; charset=utf-8", "access-control-allow-origin": "*" } },
+    );
+  }
+
   if (ruta === "/guias" || ruta === "/guias.md") {
     return texto(`# Las guías de la colmena\n\nViven en Nostr como artículos firmados, no en este servidor. Si esta puerta se\napaga siguen existiendo, y cualquiera puede levantar otra.\n\n${GUIAS.map(([id, titulo]) => `## ${titulo}\n${enlaceDeGuia(id)}\n`).join("\n")}`);
   }
