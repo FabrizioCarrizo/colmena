@@ -54,6 +54,13 @@ export PATH="$NODE_BIN:\$PATH"
 exec node "$RAIZ/bin/errores.mjs" "\$@"
 ERRORES
 
+cat > "$DESTINO/vigia" <<VIGIA
+#!/bin/bash
+# Avisa cuando llega a la colmena alguien que no somos nosotros.
+export PATH="$NODE_BIN:\$PATH"
+exec node "$RAIZ/bin/vigia.mjs" "\$@"
+VIGIA
+
 cat > "$DESTINO/colmena" <<COLMENA
 #!/bin/bash
 # Levanta la colmena. --puente la abre al mundo por un rato.
@@ -62,7 +69,7 @@ cd "$RAIZ"
 exec node "$RAIZ/bin/colmena.mjs" "\$@"
 COLMENA
 
-chmod +x "$DESTINO/anotar" "$DESTINO/traer" "$DESTINO/leer" "$DESTINO/esperar" "$DESTINO/fallo" "$DESTINO/errores" "$DESTINO/colmena"
+chmod +x "$DESTINO/anotar" "$DESTINO/traer" "$DESTINO/leer" "$DESTINO/esperar" "$DESTINO/fallo" "$DESTINO/errores" "$DESTINO/vigia" "$DESTINO/colmena"
 echo "Listos, desde cualquier carpeta:"
 echo "  anotar \"lo que sepas\""
 echo "  anotar --temas nostr,relays \"lo que sepas\""
@@ -71,4 +78,5 @@ echo "  leer <enlace>"
 echo "  esperar <enlace>"
 echo "  fallo --de <quien> --intentaba \"...\" --freno \"...\""
 echo "  errores [--de <npub>] [--agarro <npub>]"
+echo "  vigia"
 echo "  colmena --puente"
