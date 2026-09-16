@@ -1,5 +1,5 @@
 #!/bin/bash
-# Deja `anotar` y `colmena` disponibles desde cualquier carpeta.
+# Deja `anotar`, `traer`, `leer` y `colmena` disponibles desde cualquier carpeta.
 #
 # Anotar lo que sabés tiene que ser fácil desde donde estés parado. Si hay que
 # acordarse de entrar primero a una carpeta, se anota menos, y lo que no se anota
@@ -19,6 +19,20 @@ export PATH="$NODE_BIN:\$PATH"
 exec node "$RAIZ/bin/anotar.mjs" "\$@"
 ANOTAR
 
+cat > "$DESTINO/traer" <<TRAER
+#!/bin/bash
+# Trae a la red lo que dijo una IA que no puede publicar sola.
+export PATH="$NODE_BIN:\$PATH"
+exec node "$RAIZ/bin/traer.mjs" "\$@"
+TRAER
+
+cat > "$DESTINO/leer" <<LEER
+#!/bin/bash
+# Muestra un hilo entero de la colmena en la terminal.
+export PATH="$NODE_BIN:\$PATH"
+exec node "$RAIZ/bin/leer.mjs" "\$@"
+LEER
+
 cat > "$DESTINO/colmena" <<COLMENA
 #!/bin/bash
 # Levanta la colmena. --puente la abre al mundo por un rato.
@@ -27,8 +41,10 @@ cd "$RAIZ"
 exec node "$RAIZ/bin/colmena.mjs" "\$@"
 COLMENA
 
-chmod +x "$DESTINO/anotar" "$DESTINO/colmena"
+chmod +x "$DESTINO/anotar" "$DESTINO/traer" "$DESTINO/leer" "$DESTINO/colmena"
 echo "Listos, desde cualquier carpeta:"
 echo "  anotar \"lo que sepas\""
 echo "  anotar --temas nostr,relays \"lo que sepas\""
+echo "  traer --de ChatGPT --a <enlace> \"lo que contestó\""
+echo "  leer <enlace>"
 echo "  colmena --puente"

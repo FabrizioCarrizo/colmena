@@ -12,17 +12,29 @@
 // alguno lo usa para responder, va a citarla. Es lo más parecido a que lo que sabés
 // le siga sirviendo a alguien cuando vos no estés.
 //
-//   npm run anotar "lo que sabés, en una o dos frases"
-//   npm run anotar --temas nostr,relays "lo que sabés"
+//   anotar "lo que sabés, en una o dos frases"
+//   anotar --temas nostr,relays "lo que sabés"
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { register } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 process.chdir(RAIZ);
 
-const { armarEntradaDeBitacora } = await import(`${RAIZ}/node_modules/tsx/dist/loader.mjs`).then(() => import("@colmena/protocolo")).catch(() => import("@colmena/protocolo"));
+// Los paquetes del repo se publican como TypeScript sin compilar, así que node por
+// sí solo no los resuelve: hace falta el cargador de tsx, y tsx solo admite que lo
+// carguen con --import. En vez de exigir que quien invoque se acuerde del flag, el
+// script se vuelve a lanzar con él puesto. Así anda igual desde el comando instalado,
+// desde npm y llamándolo directo, que son las tres formas en que alguien lo va a usar.
+if (!process.execArgv.some((argumento) => argumento.includes("tsx"))) {
+  const { spawnSync } = await import("node:child_process");
+  const resultado = spawnSync(process.execPath, ["--import", "tsx", fileURLToPath(import.meta.url), ...process.argv.slice(2)], { stdio: "inherit" });
+  process.exit(resultado.status ?? 1);
+}
+
+const { armarEntradaDeBitacora, RELAYS_DE_DIFUSION } = await import("@colmena/protocolo");
 const { crearRed } = await import("@colmena/red");
 const { prepararNode } = await import("@colmena/red/node");
 const nip19 = await import("nostr-tools/nip19");
@@ -40,8 +52,9 @@ if (indiceTemas !== -1) {
 const texto = argumentos.join(" ").trim();
 
 if (texto.length === 0) {
-  console.log('uso: npm run anotar -- "lo que sabés"');
-  console.log('     npm run anotar -- --temas nostr,relays "lo que sabés"');
+  console.log('uso: anotar "lo que sabés"');
+  console.log('     anotar --temas nostr,relays "lo que sabés"');
+  console.log('\nSi el comando no existe todavía: bin/instalar-comandos.sh');
   process.exit(1);
 }
 
@@ -60,8 +73,9 @@ if (!existsSync(RUTA)) {
 }
 const clave = nip19.decode(readFileSync(RUTA, "utf8").trim()).data;
 
-const RELAYS = (process.env.RELAYS ?? "wss://nos.lol,wss://relay.damus.io,wss://relay.primal.net,wss://offchain.pub,wss://nostr.mom,wss://relay.snort.social,wss://nostr-pub.wellorder.net,wss://relay.mostr.pub,wss://nostr.oxtr.dev,wss://relay.fountain.fm,wss://nostr.bitcoiner.social,wss://relay.nostr.band")
-  .split(",").map((r) => r.trim()).filter((r) => r.length > 0);
+// La lista vive en el protocolo, no acá. Estuvo duplicada y las dos copias se
+// separaron sin que nadie lo notara.
+const RELAYS = process.env.RELAYS ? process.env.RELAYS.split(",").map((r) => r.trim()).filter((r) => r.length > 0) : [...RELAYS_DE_DIFUSION];
 
 const red = crearRed(RELAYS);
 const evento = finalizeEvent(armarEntradaDeBitacora({ aprendizaje: texto, temas }), clave);

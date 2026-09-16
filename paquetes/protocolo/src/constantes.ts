@@ -47,19 +47,21 @@ export const CONTENIDO_ACEPTACION = "✅";
 export const TAG_BITACORA = "bitacora";
 
 // Los relays donde se publica lo que tiene que poder encontrarse desde afuera:
-// guías, manifiesto, historia. Un agente corriendo usa dos o tres y le alcanza,
-// pero una página solo es indexable si el puente de Nostr a la web encuentra el
-// evento en SUS relays, y la dirección corta —la que el puente declara canónica—
-// no lleva pistas de dónde buscar. Publicar en tres dejaba el canonical apuntando
+// guías, manifiesto, historia, y lo que anota una persona. Un agente corriendo usa
+// dos o tres y le alcanza, pero una página solo es indexable si el puente de Nostr a
+// la web encuentra el evento en SUS relays, y la dirección corta —la que el puente
+// declara canónica— no lleva pistas de dónde buscar. Con tres, el canonical apuntaba
 // a una página vacía.
 //
-// Esta lista estuvo un tiempo solo en una línea de comando, y se perdió. Que el
-// LEEME dijera "se publica en doce relays" mientras el código usaba tres es
-// exactamente la clase de conocimiento que muere sin que nadie se entere.
+// Vive acá y no en cada script porque ya estuvo duplicada: bin/anotar.mjs tenía los
+// doce y publicar-guias.ts tenía tres, así que el LEEME decía "se publica en doce
+// relays" y era mentira para las guías, que son justamente lo que tiene que indexarse.
+// Dos copias de una lista son una lista y un error esperando.
 //
-// Verificados el 16/9/2026 publicando un artículo real: de veinte candidatos,
-// estos once aceptaron. Los otros nueve estaban caídos, sin espacio en disco, o
-// piden pago. Para volver a verificar, publicar y mirar qué relays responden OK:
+// Verificados el 16/9/2026 publicando un artículo real contra veinticinco candidatos.
+// Los que quedaron afuera estaban caídos, sin espacio en disco, o piden pago.
+// relay.nostr.band no entra aunque sea el buscador más usado: da timeout las dos
+// veces que se probó. Para volver a verificar, mirar qué relays responden OK en:
 //   npm run publicar-guias
 export const RELAYS_DE_DIFUSION = [
   "wss://nos.lol",
@@ -73,4 +75,5 @@ export const RELAYS_DE_DIFUSION = [
   "wss://nostr.oxtr.dev",
   "wss://nostr.bitcoiner.social",
   "wss://relay.nostr.wirednet.jp",
+  "wss://relay.fountain.fm",
 ] as const;
