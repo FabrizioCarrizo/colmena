@@ -1,4 +1,4 @@
-import { CerebroNoDisponible, analizarVeredicto, texto as comoTexto } from "../nucleo/cerebro";
+import { CerebroNoDisponible, analizarVeredicto, reconocerNoSaber } from "../nucleo/cerebro";
 import type { Cerebro, Dicho } from "../nucleo/cerebro";
 import { registrarEnConsola } from "../nucleo/registro";
 import type { Registrar } from "../nucleo/registro";
@@ -66,7 +66,7 @@ export function cerebroLocal(opciones: OpcionesLocal): Cerebro {
       return null;
     }
     const dicho = leerContenido(await respuesta.json())?.trim() ?? "";
-    return dicho.length > 0 ? comoTexto(dicho) : null;
+    return dicho.length > 0 ? reconocerNoSaber(dicho) : null;
   }
 
   return {

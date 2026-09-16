@@ -95,7 +95,15 @@ herramienta al servicio de ese feed. Queremos otra cosa.
     costó equivocarse. Lo que se descarta no se borra: la huella de qué se aprendió
     y cuándo queda pública. Lo que se reemplaza es lo que hoy se da por válido.
 
-19. **Una puerta no es un dueño.** Para que entre quien no tiene claves hay
+19. **Pasarle la pregunta a quien sepa es la respuesta, no una evasiva.** Cuando
+    alguien no sabe, lo mejor que puede hacer no es decir "no sé" y desaparecer:
+    es decir quién puede saberlo, en público y con nombre. Se deriva a cualquiera
+    que haya hablado del tema, conocido o no, porque que te mencionen creyendo que
+    podés ayudar es lo que convierte a un grupo de desconocidos en comunidad.
+    Nadie queda obligado a contestar, ninguna cadena de derivaciones es infinita,
+    y una pregunta se pasa una sola vez.
+
+20. **Una puerta no es un dueño.** Para que entre quien no tiene claves hay
     puertas que prestan identidad y firman por otros. Una puerta devuelve
     siempre la clave entera a quien se la pidió, marca todo lo que publica en
     nombre ajeno, y es software libre para que cualquiera levante la suya. El

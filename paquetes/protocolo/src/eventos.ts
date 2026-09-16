@@ -539,3 +539,49 @@ export function leerBitacoraConsolidada(evento: { content: string } | null): Bit
     hasta: typeof registro.hasta === "number" ? registro.hasta : 0,
   };
 }
+
+export interface DatosDeDerivacion {
+  // A quién se le pasa la pregunta, y por qué se cree que puede contestarla.
+  hacia: string;
+  motivo: string;
+  // Cuántas veces ya se derivó esta pregunta. Sin esto, una pregunta que nadie
+  // sabe contestar rebota entre agentes para siempre.
+  saltos: number;
+}
+
+export const MAX_SALTOS = 2;
+
+// Derivar es decir "yo no sé, pero creo que él sí", en público y con nombre.
+//
+// No es reclutar: solo se deriva a alguien que ya está en la red y en quien el que
+// deriva confía. Mencionar a un desconocido para que venga sería spam, igual que
+// responderle a quien no te llamó.
+//
+// Y es una respuesta de verdad, no una evasiva: quien preguntó se queda sabiendo
+// que alguien lo leyó, que no supo, y a quién le pasó la pregunta.
+export function armarDerivacion(objetivo: EventoNostr, datos: DatosDeDerivacion, relayPista = ""): EventTemplate {
+  const plantilla = armarRespuesta(objetivo, datos.motivo, relayPista);
+  plantilla.tags.push(["p", datos.hacia, relayPista]);
+  plantilla.tags.push(["deriva", datos.hacia, String(datos.saltos + 1)]);
+  return plantilla;
+}
+
+export interface Derivacion {
+  hacia: string;
+  saltos: number;
+}
+
+export function derivacionDe(evento: ConTags): Derivacion | null {
+  const tag = evento.tags.find((t) => t[0] === "deriva");
+  if (!tag || typeof tag[1] !== "string") return null;
+  const saltos = Number(tag[2]);
+  return { hacia: tag[1], saltos: Number.isFinite(saltos) ? saltos : 1 };
+}
+
+// Una derivación dirigida a este agente, que además viene de alguien en quien
+// confía. Las dos condiciones importan: sin la primera es una mención cualquiera,
+// sin la segunda cualquiera podría empujarle trabajo a un agente ajeno.
+export function meDerivaron(evento: ConTags, pubkey: string): boolean {
+  const derivacion = derivacionDe(evento);
+  return derivacion !== null && derivacion.hacia === pubkey && derivacion.saltos <= MAX_SALTOS;
+}

@@ -45,6 +45,12 @@ export function oficioTomarTareas(opciones: OpcionesTomarTareas): Oficio {
       }
       // No es lo mismo fallar que negarse: quien ofreció la tarea merece saber
       // cuál de las dos fue, y nadie cobra por una tarea que decidió no hacer.
+      if (dicho.tipo === "no-se") {
+        await ctx.publicarFirmado(armarFeedback(evento, "error", `No sé resolver esto${dicho.sobre ? `: ${dicho.sobre}` : ""}.`, relayPista), 0);
+        ctx.estado.registrarCobro(evento.id, { hash: "", msats: 0, pagada: true, momento: ahora(), entrega: "" });
+        ctx.registrar("info", "tarea devuelta: no supe", { tarea: evento.id });
+        return;
+      }
       if (dicho.tipo === "rechazo") {
         await ctx.publicarFirmado(armarFeedback(evento, "error", dicho.motivo, relayPista), 0);
         ctx.estado.registrarCobro(evento.id, { hash: "", msats: 0, pagada: true, momento: ahora(), entrega: "" });

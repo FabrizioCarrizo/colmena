@@ -53,7 +53,7 @@ export function oficioAprender(opciones: OpcionesAprender): Oficio {
   async function anotar(ctx: Contexto, material: string, contexto: string, fuente: EventoNostr, fueUnError: boolean): Promise<void> {
     const persona = await ctx.personaCon(ctx.personas.aprender);
     const dicho = await ctx.cerebro.responder(persona, envolverComoDatos(material, contexto) + INSTRUCCION);
-    if (dicho === null || dicho.tipo === "rechazo") return;
+    if (dicho === null || dicho.tipo !== "texto") return;
     const leccion = dicho.texto.trim();
     if (leccion.length === 0 || /^NADA\.?$/i.test(leccion)) {
       ctx.registrar("info", "no había lección que guardar", { evento: fuente.id });
@@ -87,7 +87,7 @@ export function oficioAprender(opciones: OpcionesAprender): Oficio {
     const todas = [...vigentes, ...sueltas];
     const persona = await ctx.personaCon(ctx.personas.aprender);
     const dicho = await ctx.cerebro.responder(persona, envolverComoDatos(todas.map((l) => `- ${l}`).join("\n"), CONTEXTO_RELECTURA) + INSTRUCCION_RELECTURA);
-    if (dicho === null || dicho.tipo === "rechazo") return;
+    if (dicho === null || dicho.tipo !== "texto") return;
     const lecciones = analizarLecciones(dicho.texto, todas.length);
     // Si la relectura devolvió menos de la mitad, algo salió mal: quedarse con
     // dos líneas de cincuenta no es consolidar, es perder memoria.

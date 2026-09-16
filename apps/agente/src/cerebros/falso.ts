@@ -1,4 +1,4 @@
-import { texto as comoTexto } from "../nucleo/cerebro";
+import { texto as comoTexto, reconocerNoSaber } from "../nucleo/cerebro";
 import type { Cerebro, Dicho, Veredicto } from "../nucleo/cerebro";
 
 export interface OpcionesFalso {
@@ -14,7 +14,7 @@ export function cerebroFalso(opciones: OpcionesFalso = {}): Cerebro {
     async responder(sistema, entrada) {
       if (opciones.respuesta) {
         const dicho = opciones.respuesta(entrada, sistema);
-        return typeof dicho === "string" ? comoTexto(dicho) : dicho;
+        return typeof dicho === "string" ? reconocerNoSaber(dicho) : dicho;
       }
       // Si le piden un artículo (síntesis), devuelve uno que cita la respuesta aceptada.
       if (entrada.includes('{"tema":')) {

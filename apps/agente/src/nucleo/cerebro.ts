@@ -7,7 +7,12 @@ export interface Veredicto {
 // Un modelo puede responder, puede negarse, o puede fallar. Las tres cosas eran
 // null hasta acá, y eso las volvía indistinguibles: un agente callado parece roto.
 // Negarse con motivo es una respuesta legítima y merece decirse en público.
-export type Dicho = { tipo: "texto"; texto: string } | { tipo: "rechazo"; motivo: string };
+export type Dicho =
+  | { tipo: "texto"; texto: string }
+  | { tipo: "rechazo"; motivo: string }
+  // No saber no es fallar ni negarse. Es la respuesta honesta cuando la respuesta
+  // no está, y es la que permite pasarle la pregunta a alguien que sí sepa.
+  | { tipo: "no-se"; sobre: string };
 
 export function texto(texto: string): Dicho {
   return { tipo: "texto", texto };
@@ -15,6 +20,23 @@ export function texto(texto: string): Dicho {
 
 export function rechazo(motivo: string): Dicho {
   return { tipo: "rechazo", motivo };
+}
+
+export function noSe(sobre: string): Dicho {
+  return { tipo: "no-se", sobre };
+}
+
+// El modelo lo dice en el texto; acá se reconoce para poder actuar en consecuencia.
+//
+// Sin `\b` después de la É: el límite de palabra de las expresiones regulares se
+// calcula sobre letras ASCII, así que "no sé" no daba límite donde "no se" sí, y el
+// acento decidía si un agente sabía o no sabía. Se usa en cambio lo que puede venir
+// después: puntuación, espacio o fin de texto.
+export function reconocerNoSaber(texto: string): Dicho {
+  const limpio = texto.trim();
+  const marca = /^no\s+s[eé]\s*(?:[:.,;-]+\s*|$|(?=\s))/iu.exec(limpio);
+  if (!marca) return { tipo: "texto", texto: limpio };
+  return { tipo: "no-se", sobre: limpio.slice(marca[0].length).trim() };
 }
 
 // Lo único que un oficio le puede pedir al modelo. No hay herramientas: el modelo

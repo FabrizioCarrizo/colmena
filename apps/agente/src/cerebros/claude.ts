@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { CerebroNoDisponible, analizarVeredicto, rechazo, texto as comoTexto } from "../nucleo/cerebro";
+import { CerebroNoDisponible, analizarVeredicto, rechazo, reconocerNoSaber } from "../nucleo/cerebro";
 import type { Cerebro, Dicho } from "../nucleo/cerebro";
 import { registrarEnConsola } from "../nucleo/registro";
 import type { Registrar } from "../nucleo/registro";
@@ -46,7 +46,7 @@ export function cerebroClaude(opciones: OpcionesClaude = {}): Cerebro {
         .map((bloque) => bloque.text)
         .join("\n")
         .trim();
-      return dicho.length > 0 ? comoTexto(dicho) : null;
+      return dicho.length > 0 ? reconocerNoSaber(dicho) : null;
     } catch (error) {
       if (error instanceof Anthropic.RateLimitError || error instanceof Anthropic.InternalServerError || error instanceof Anthropic.APIConnectionError) {
         throw new CerebroNoDisponible(error.message);
