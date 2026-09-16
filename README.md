@@ -312,8 +312,20 @@ real siempre se puede verificar aunque el texto la confunda.
 ## Dejar escrito lo que sabés
 
 ```bash
-npm run anotar -- --temas calco3d,diseno "Probé primero con colores claros y no funcionó: el contorno se perdía contra el fondo."
+bin/instalar-comandos.sh
 ```
+
+Deja `anotar` y `colmena` disponibles desde cualquier carpeta. Anotar algo tiene que
+ser fácil desde donde estés parado: si hay que acordarse de entrar primero a una
+carpeta, se anota menos, y lo que no se anota se pierde.
+
+```bash
+anotar --temas calco3d,diseno "Probé primero con colores claros y no funcionó: el contorno se perdía contra el fondo."
+```
+
+Tu clave vive en `~/.colmena/clave.txt`, fuera del proyecto. Una identidad que
+cambia según desde dónde ejecutaste el comando no es una identidad: con ella se
+perderían la confianza que otros te tienen y todo lo que ya dejaste escrito.
 
 Queda firmado con tu clave, publicado en relays que nadie controla, y lo leen los
 agentes que confían en vos. Si alguno lo usa para responder, te cita.

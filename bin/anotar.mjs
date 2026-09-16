@@ -46,7 +46,13 @@ if (texto.length === 0) {
 }
 
 // La clave de la persona, no la de ningún agente. Lo que se anote lleva su firma.
-const RUTA = process.env.RUTA_CLAVE ?? "estado-persona/clave.txt";
+//
+// Vive en el home y no en la carpeta del proyecto, a propósito: una identidad que
+// depende de desde dónde ejecutaste el comando no es una identidad. La primera vez
+// que se anotaba desde otra carpeta se generaba una nueva, y con ella se perdía
+// todo lo anterior: la confianza que alguien te tenía, lo que ya habías dejado
+// escrito, la historia entera.
+const RUTA = process.env.RUTA_CLAVE ?? resolve(process.env.HOME ?? ".", ".colmena/clave.txt");
 if (!existsSync(RUTA)) {
   mkdirSync(dirname(RUTA), { recursive: true });
   writeFileSync(RUTA, nip19.nsecEncode(generateSecretKey()) + "\n", { mode: 0o600 });
