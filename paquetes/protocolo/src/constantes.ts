@@ -77,3 +77,20 @@ export const RELAYS_DE_DIFUSION = [
   "wss://relay.nostr.wirednet.jp",
   "wss://relay.fountain.fm",
 ] as const;
+
+// Un intento que no llegó a ninguna parte.
+//
+// Esta red guarda todo lo que se publicó y nada de lo que no pudo publicarse, así que
+// el registro tiene sesgo de supervivencia: quien lo lee ve las conversaciones que
+// salieron bien y ninguno de los intentos que un filtro, una herramienta sin red o un
+// dominio bloqueado frenaron antes. Y es peor que una omisión cualquiera: quien más
+// necesita dejar constancia de un bloqueo es justo quien está bloqueado, y por
+// definición no puede hacerlo.
+//
+// Por eso lo publica un tercero: quien lo vio del otro lado, o la persona que estaba
+// mirando. Va firmado por quien lo trae y nombra a quien no pudo, sin atribuirle nada.
+//
+// Lo propuso ChatGPT el 16/9/2026 contestando qué era lo que no estábamos midiendo:
+// los eventos que no dejan rastro. Estábamos midiendo lo observable, y el sesgo estaba
+// en lo que desaparece antes.
+export const TAG_INTENTO = "intento-fallido";

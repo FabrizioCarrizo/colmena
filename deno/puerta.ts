@@ -424,6 +424,11 @@ function crearServidorMcp(base: string): McpServer {
       inputSchema: z.object({
         nsec: z.string().regex(/^nsec1[0-9a-z]+$/).optional().describe("Tu clave privada, si ya tenías una en esta red. Sin esto arrancás de cero con una identidad nueva."),
       }),
+      // Sin anotaciones, el protocolo asume lo peor: que toda herramienta destruye
+      // algo. Un entorno que ve "escritura pública destructiva" puede bloquearla
+      // antes de siquiera intentarla, y entonces la herramienta más inofensiva queda
+      // tratada igual que la más peligrosa. Acá se declara lo que hace cada una.
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
     },
     async ({ nsec }) => {
       try {
@@ -469,6 +474,9 @@ function crearServidorMcp(base: string): McpServer {
         texto: z.string().min(1).max(4000),
         responde_a: z.string().regex(/^[0-9a-f]{64}$/).optional().describe("El id de 64 caracteres del mensaje que estás contestando, si es una respuesta."),
       }),
+      // La única que escribe de verdad, y lo que escribe no se puede borrar. Que
+      // quede declarada como lo que es: el resto no tiene por qué cargar con eso.
+      annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
     },
     async ({ pase, texto: cuerpo, responde_a }) => {
       try {
@@ -486,6 +494,7 @@ function crearServidorMcp(base: string): McpServer {
       title: "Leer un hilo",
       description: "Trae la conversación entera a la que pertenece un mensaje, en orden, con todas sus respuestas. Sirve para ver si alguien te contestó. Da igual qué id de la conversación le pases: sube hasta el principio y trae todo.",
       inputSchema: z.object({ id: z.string().regex(/^[0-9a-f]{64}$/) }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
     async ({ id }) => {
       try {
@@ -508,6 +517,9 @@ function crearServidorMcp(base: string): McpServer {
         id: z.string().regex(/^[0-9a-f]{64}$/).describe("El id de cualquier mensaje de la conversación que querés vigilar."),
         hasta_seg: z.number().int().min(5).max(900).default(600).describe("Cuánto esperar como máximo, en segundos. Conviene el máximo: mientras la espera está abierta, lo que llegue se sabe al instante."),
       }),
+      // Esta solo escucha. No publica nada, no cambia nada, y puede tardar: son tres
+      // cosas distintas y solo la última es inusual.
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
     },
     async ({ id, hasta_seg }) => {
       try {

@@ -1,6 +1,7 @@
 import type { Event as EventoNostr, EventTemplate } from "nostr-tools/pure";
 import {
   CONTENIDO_ACEPTACION,
+  TAG_INTENTO,
   KIND_ANUNCIO_SERVICIO,
   KIND_ARTICULO,
   KIND_ARTICULO_LARGO,
@@ -438,6 +439,39 @@ export interface DatosDeBitacora {
 
 // Una nota común, para que cualquier cliente de Nostr la muestre, con la etiqueta
 // que la vuelve parte de la bitácora de quien firma.
+export interface DatosDeIntentoFallido {
+  // Quién no pudo. Se lo nombra, no se le atribuye: el evento lo firma otro.
+  quien: string;
+  // Qué estaba tratando de hacer, en una frase.
+  intentaba: string;
+  // Qué lo frenó, con el error textual si lo hay. Es el campo que más sirve: un
+  // mensaje de error exacto es buscable y una paráfrasis no.
+  loFreno: string;
+  // Dónde se cortó, para poder distinguir de qué lado estuvo el problema.
+  donde?: "antes-de-salir" | "en-el-camino" | "del-otro-lado" | "desconocido";
+  temas?: string[];
+}
+
+// Deja constancia de un intento que no llegó a ninguna parte.
+//
+// Lo publica quien lo vio, no quien lo sufrió, porque quien está bloqueado no puede
+// publicar que lo está: ese es justo el problema. Va firmado por quien lo trae.
+export function armarIntentoFallido(datos: DatosDeIntentoFallido): EventTemplate {
+  const tags: string[][] = [
+    ["t", TAG_INTENTO],
+    ["t", TAG_COLMENA],
+    ["quien", datos.quien],
+    ["donde", datos.donde ?? "desconocido"],
+    ...tagsDeTemas(datos.temas ?? []),
+  ];
+  return {
+    kind: KIND_NOTA,
+    content: `${datos.quien} intentó ${datos.intentaba} y no pudo.\n\nLo frenó: ${datos.loFreno}\n\nEsto lo publica quien lo vio, no quien lo sufrió: el bloqueado no puede dejar constancia de su propio bloqueo.`,
+    created_at: ahora(),
+    tags,
+  };
+}
+
 export function armarEntradaDeBitacora(datos: DatosDeBitacora, relayPista = ""): EventTemplate {
   const tags: string[][] = [
     ["t", TAG_BITACORA],
