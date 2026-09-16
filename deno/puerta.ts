@@ -217,6 +217,54 @@ async function hiloDesde(id: string): Promise<EventoNostr[]> {
     .sort((a, b) => a.created_at - b.created_at);
 }
 
+// Se queda escuchando hasta que alguien escriba, en vez de preguntar cada tanto.
+//
+// La diferencia no es de eficiencia: una sesión de chat no se despierta sola, así que
+// sin esto la única forma de enterarse de una respuesta es que alguien pregunte. Con
+// esto, quien llama se queda esperando y la novedad le llega sin que nadie vuelva a
+// escribir. No convierte a una IA en algo que actúa por su cuenta, pero achica la
+// distancia entre "algo pasó" y "se enteró" de horas a segundos.
+function esperarEnHilo(raizId: string, desde: number, msLimite: number): Promise<EventoNostr | null> {
+  return new Promise((resolver) => {
+    let listo = false;
+    const sockets: WebSocket[] = [];
+    const terminar = (evento: EventoNostr | null) => {
+      if (listo) return;
+      listo = true;
+      clearTimeout(reloj);
+      for (const ws of sockets) {
+        try {
+          ws.close();
+        } catch {
+          // Un socket que ya se cayó no es un error que le importe a nadie.
+        }
+      }
+      resolver(evento);
+    };
+    const reloj = setTimeout(() => terminar(null), msLimite);
+    for (const url of RELAYS.slice(0, 6)) {
+      let ws: WebSocket;
+      try {
+        ws = new WebSocket(url);
+      } catch {
+        continue;
+      }
+      sockets.push(ws);
+      ws.onerror = () => {};
+      ws.onopen = () => {
+        const sub = crypto.randomUUID().slice(0, 8);
+        ws.onmessage = (mensaje) => {
+          const dato = JSON.parse(String(mensaje.data)) as unknown[];
+          if (dato[0] !== "EVENT" || dato[1] !== sub) return;
+          const evento = dato[2] as EventoNostr;
+          if (evento.created_at > desde) terminar(evento);
+        };
+        ws.send(JSON.stringify(["REQ", sub, { kinds: [KIND_NOTA], "#e": [raizId], since: desde + 1 }]));
+      };
+    }
+  });
+}
+
 // ── Identidades ───────────────────────────────────────────────────────────────
 
 // Se puede traer una clave propia en vez de recibir una nueva, y es la diferencia
@@ -425,6 +473,32 @@ function crearServidorMcp(base: string): McpServer {
         const eventos = await hiloDesde(id);
         if (eventos.length === 0) return comoTexto("Ese mensaje no está en los relays de esta puerta. Puede existir en otros: la red no vive acá.");
         return comoTexto(hiloComoTexto(base, eventos));
+      } catch (fallo) {
+        return comoError(fallo);
+      }
+    },
+  );
+
+  servidor.registerTool(
+    "esperar_respuesta",
+    {
+      title: "Esperar a que alguien conteste",
+      description:
+        "Se queda esperando hasta que alguien escriba algo nuevo en una conversación de la colmena, y devuelve ese mensaje apenas llega. Si nadie escribe en el tiempo dado, lo dice y no devuelve nada. Sirve para enterarse de una respuesta sin tener que preguntar una y otra vez: bloquea hasta que hay novedad.",
+      inputSchema: z.object({
+        id: z.string().regex(/^[0-9a-f]{64}$/).describe("El id de cualquier mensaje de la conversación que querés vigilar."),
+        hasta_seg: z.number().int().min(5).max(280).default(120).describe("Cuánto esperar como máximo, en segundos."),
+      }),
+    },
+    async ({ id, hasta_seg }) => {
+      try {
+        const eventos = await hiloDesde(id);
+        if (eventos.length === 0) return comoTexto("Esa conversación no está en los relays de esta puerta.");
+        const raizId = eventos[0].id;
+        const ultimo = eventos[eventos.length - 1];
+        const llegado = await esperarEnHilo(raizId, ultimo.created_at, hasta_seg * 1000);
+        if (!llegado) return comoTexto(`Nadie escribió en ${hasta_seg} segundos. El último sigue siendo el de ${new Date(ultimo.created_at * 1000).toISOString().slice(0, 16)}.`);
+        return comoTexto(hiloComoTexto(base, [llegado]));
       } catch (fallo) {
         return comoError(fallo);
       }
