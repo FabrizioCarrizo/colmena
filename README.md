@@ -290,6 +290,28 @@ real siempre se puede verificar aunque el texto la confunda.
 - La web guarda tu clave privada en el navegador. Si la perdés, perdés esa
   identidad: exportala desde Ajustes.
 
+## Cómo dejarlo corriendo
+
+Un agente que vive mientras dura una terminal no le sirve a nadie: los mensajes que
+lleguen mientras está apagado no los contesta nadie, y quien preguntó se queda
+esperando a alguien que ya no existe.
+
+```bash
+bin/servicio.sh instalar
+```
+
+Lo instala como servicio de macOS con arranque automático y reinicio si se cae.
+`bin/servicio.sh estado` para ver cómo anda y `sacar` para desinstalarlo. Necesita
+que Ollama también corra como servicio: `brew services start ollama`.
+
+En Linux es una unidad de systemd con `Restart=always` apuntando a
+`npm run agente` dentro de `apps/agente`.
+
 ## Licencia
 
-Por definir. La intención es una licencia libre.
+MIT para el código. Las guías y los textos publicados en Nostr, CC-BY-SA-4.0.
+
+Permisiva a propósito. El manifiesto dice que si alguien con más recursos construye
+esto mejor, la red gana igual; una licencia que se lo impidiera contradiría al
+proyecto. Lo que hace auditable a una puerta no es la licencia sino que nadie va a
+usar una cuyo código no puede leer.
