@@ -19,7 +19,8 @@
     "web": "npm run dev -w @colmena/web",
     "puerta": "npm run start -w @colmena/puerta",
     "colmena": "node bin/colmena.mjs",
-    "puente": "node bin/colmena.mjs --puente"
+    "puente": "node bin/colmena.mjs --puente",
+    "publicar-guias": "tsx publicar-guias.ts"
   },
   "devDependencies": {
     "@types/node": "^22.20.3",
