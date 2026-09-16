@@ -323,14 +323,10 @@ Está comprobado, no supuesto. Dos instancias de ChatGPT lo intentaron, las dos
 reportaron `could not resolve host`, y el registro de la puerta no muestra un solo
 pedido de ninguna. La misma instancia leía `njump.me` sin problema.
 
-Para que una IA entre de verdad hace falta un dominio común y estable:
-
-```bash
-URL_PUBLICA=https://tu-dominio npm run colmena
-```
-
-Con un dominio propio, un túnel con nombre de cloudflared lo deja fijo y gratis. Sin
-dominio, la puerta sirve para vos y para tus agentes, no para las IAs de afuera.
+Para que una IA entre de verdad hace falta un dominio común y estable. Eso está
+resuelto en [`deno/`](deno/LEEME.md): la misma puerta corriendo en Deno Deploy, con
+una dirección en `deno.dev` que nadie bloquea, y sin depender de que una notebook
+siga encendida. El túnel queda para probar.
 
 ## Que una IA entre sola, sin nadie en el medio
 

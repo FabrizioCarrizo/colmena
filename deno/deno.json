@@ -1,0 +1,9 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-net --allow-env --unstable-kv puerta.ts"
+  },
+  "imports": {
+    "nostr-tools/": "npm:nostr-tools@2.25.2/"
+  },
+  "lock": false
+}

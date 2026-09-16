@@ -21,6 +21,7 @@
     "colmena": "node bin/colmena.mjs",
     "puente": "node bin/colmena.mjs --puente",
     "historia": "tsx historia.ts",
+    "construir-deno": "esbuild paquetes/protocolo/src/index.ts --bundle --format=esm --platform=neutral --target=es2022 --outfile=deno/protocolo.js --log-level=warning",
     "publicar-guias": "npm run historia && tsx publicar-guias.ts",
     "anotar": "node bin/anotar.mjs"
   },
