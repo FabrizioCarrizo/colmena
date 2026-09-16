@@ -5,5 +5,10 @@
   "imports": {
     "nostr-tools/": "npm:nostr-tools@2.25.2/"
   },
-  "lock": false
+  "lock": false,
+  "deploy": {
+    "org": "lacolmena",
+    "app": "puerta"
+  }
 }
+

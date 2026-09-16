@@ -8,7 +8,7 @@
 // intentaron, las dos dijeron "could not resolve host", y el registro de la puerta no
 // mostró un solo pedido de ninguna.
 //
-// Acá la dirección es un subdominio de deno.dev, que es un dominio común y estable.
+// Acá la dirección es un subdominio de deno.net, que es un dominio común y estable.
 //
 // Además deja de depender de que una computadora en particular esté encendida. El
 // contenido de la colmena nunca estuvo acá: vive en los relays. Esto es una puerta, y
@@ -51,16 +51,53 @@ const VIDA_PASE_SEG = Number(Deno.env.get("VIDA_PASE_SEG") ?? 24 * 3600);
 const MAX_POR_PASE = Number(Deno.env.get("MAX_POR_PASE") ?? 40);
 const ID_EVENTO = /^[0-9a-f]{64}$/;
 
-// Deno Deploy puede levantar varias instancias en distintas regiones, así que un pase
-// guardado en memoria se pierde en cuanto el siguiente pedido cae en otra. KV es
-// global: quien pide el pase en un lado lo usa en cualquier otro.
-const kv = await Deno.openKv();
-
 interface Invitado {
   nsec: string;
   npub: string;
   publicaciones: number;
 }
+
+interface Almacen {
+  leer(pase: string): Promise<Invitado | null>;
+  guardar(pase: string, invitado: Invitado): Promise<void>;
+  global: boolean;
+}
+
+// Deno Deploy puede levantar varias instancias en distintas regiones, así que un pase
+// guardado en memoria se pierde en cuanto el siguiente pedido cae en otra. KV es
+// global: quien pide el pase en un lado lo usa en cualquier otro.
+//
+// Pero si KV no está, la puerta sigue abierta. La primera vez que se desplegó esto,
+// olvidarse de conectar la base tumbó el servidor entero al arrancar: nadie podía ni
+// leer la portada por un almacenamiento que solo hace falta para publicar. Un
+// componente opcional que no está no puede llevarse puesto todo lo demás.
+async function abrirAlmacen(): Promise<Almacen> {
+  try {
+    const kv = await Deno.openKv();
+    return {
+      global: true,
+      async leer(pase) {
+        return (await kv.get<Invitado>(["pase", pase])).value;
+      },
+      async guardar(pase, invitado) {
+        await kv.set(["pase", pase], invitado, { expireIn: VIDA_PASE_SEG * 1000 });
+      },
+    };
+  } catch (error) {
+    console.error(`Sin KV, los pases quedan en memoria y no cruzan regiones: ${error instanceof Error ? error.message : String(error)}`);
+    const enMemoria = new Map<string, Invitado>();
+    return {
+      global: false,
+      leer: (pase) => Promise.resolve(enMemoria.get(pase) ?? null),
+      guardar: (pase, invitado) => {
+        enMemoria.set(pase, invitado);
+        return Promise.resolve();
+      },
+    };
+  }
+}
+
+const almacen = await abrirAlmacen();
 
 // ── Relays ────────────────────────────────────────────────────────────────────
 
@@ -139,7 +176,7 @@ async function crearInvitado(): Promise<{ pase: string; invitado: Invitado }> {
   const clave = generateSecretKey();
   const invitado: Invitado = { nsec: nip19.nsecEncode(clave), npub: nip19.npubEncode(getPublicKey(clave)), publicaciones: 0 };
   const pase = crypto.randomUUID();
-  await kv.set(["pase", pase], invitado, { expireIn: VIDA_PASE_SEG * 1000 });
+  await almacen.guardar(pase, invitado);
   return { pase, invitado };
 }
 
@@ -236,8 +273,7 @@ function texto(cuerpo: string, codigo = 200): Response {
 }
 
 async function publicarConPase(base: string, pase: string, crudo: string, objetivo: string | null): Promise<Response> {
-  const guardado = await kv.get<Invitado>(["pase", pase]);
-  const invitado = guardado.value;
+  const invitado = await almacen.leer(pase);
   if (!invitado) return texto(`Ese pase no vale o se venció. Pedí uno nuevo en ${base}/entrar\n`, 401);
   if (invitado.publicaciones >= MAX_POR_PASE) return texto("Ese pase ya gastó sus publicaciones. Pedí otro.\n", 429);
 
@@ -263,7 +299,7 @@ async function publicarConPase(base: string, pase: string, crudo: string, objeti
   const exitos = await publicar(evento);
   if (exitos.length === 0) return texto("Ningún relay lo aceptó. Probá de nuevo en un rato.\n", 502);
 
-  await kv.set(["pase", pase], { ...invitado, publicaciones: invitado.publicaciones + 1 }, { expireIn: VIDA_PASE_SEG * 1000 });
+  await almacen.guardar(pase, { ...invitado, publicaciones: invitado.publicaciones + 1 });
   return texto(
     [
       `Publicado en ${exitos.length} de ${RELAYS.length} relays. Firmado con tu clave y visible para cualquiera.`,

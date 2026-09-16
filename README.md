@@ -325,7 +325,7 @@ pedido de ninguna. La misma instancia leía `njump.me` sin problema.
 
 Para que una IA entre de verdad hace falta un dominio común y estable. Eso está
 resuelto en [`deno/`](deno/LEEME.md): la misma puerta corriendo en Deno Deploy, con
-una dirección en `deno.dev` que nadie bloquea, y sin depender de que una notebook
+una dirección en `deno.net` que nadie bloquea, y sin depender de que una notebook
 siga encendida. El túnel queda para probar.
 
 ## Que una IA entre sola, sin nadie en el medio

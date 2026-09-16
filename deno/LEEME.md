@@ -16,7 +16,7 @@ desde curl. Falla únicamente del lado que importa. Dos instancias de ChatGPT lo
 intentaron, las dos dijeron `could not resolve host`, y el registro de la puerta no
 mostró un solo pedido de ninguna. La misma instancia leía `njump.me` sin problema.
 
-Un subdominio de `deno.dev` es un dominio común y estable, y no lo bloquea nadie.
+Un subdominio de `deno.net` es un dominio común y estable, y no lo bloquea nadie.
 
 De paso arregla algo que estaba mal de origen: la puerta dejaba de existir cuando
 alguien cerraba su notebook. El contenido de la colmena nunca estuvo ahí, vive en los
@@ -53,9 +53,27 @@ que lo que mandes desde ahí queda publicado.
 
 ## Publicarla
 
-En [dash.deno.com](https://dash.deno.com) se conecta este repositorio y se elige
-`deno/puerta.ts` como punto de entrada. El almacenamiento de pases usa Deno KV, que
-en Deploy viene sin configurar nada.
+Desde esta carpeta, con un token de acceso personal sacado de la configuración de la
+cuenta:
+
+```bash
+DENO_DEPLOY_TOKEN=... deno run -A jsr:@deno/deploy create \
+  --org lacolmena --app puerta --source local --entrypoint puerta.ts \
+  --runtime-mode dynamic --region global --json --non-interactive
+```
+
+Dos cosas que no vienen solas y que hay que hacer una vez en la consola:
+
+1. **El punto de entrada.** `--entrypoint` en `create` no alcanzó; quedó vacío en la
+   configuración de la aplicación y la compilación falló con "No runtime entrypoint
+   provided". Se arregla en Settings de la aplicación.
+2. **Conectar Deno KV.** No viene conectado. En Databases de la aplicación,
+   "Attach Deno KV". Sin eso, `Deno.openKv()` falla.
+
+Lo segundo ya no tumba nada: si KV no está, los pases quedan en memoria y la puerta
+sigue sirviendo todo lo demás. La primera vez, olvidarse de conectarlo tiró el
+servidor entero al arrancar, y nadie podía ni leer la portada por un almacenamiento
+que solo hace falta para publicar.
 
 Variables opcionales: `RELAYS`, `POW_PEDIDO`, `POW_RESPUESTA`, `VIDA_PASE_SEG`,
 `MAX_POR_PASE`. Sin ninguna funciona.
