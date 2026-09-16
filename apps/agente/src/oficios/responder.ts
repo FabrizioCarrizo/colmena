@@ -59,10 +59,17 @@ async function aQuienPasarsela(ctx: Contexto, evento: EventoNostr, sobre: string
     if (derivacionDe(nota) !== null) continue;
     const texto = `${nota.content} ${temasDe(nota).join(" ")}`.toLowerCase();
     const puntos = [...palabras].filter((palabra) => texto.includes(palabra)).length;
-    // Con una sola palabra en común no alcanza. Media red comparte una palabra con
-    // cualquier pregunta, y derivar por eso es mandarle trabajo a un desconocido
-    // que no tiene nada que ver: ahí una mención sí se vuelve una molestia.
-    if (puntos >= 2) candidatos.set(nota.pubkey, (candidatos.get(nota.pubkey) ?? 0) + puntos);
+    // Con una sola palabra en común no alcanza, y con dos tampoco alcanzaba. Derivó a
+    // una cuenta llamada "fuckstr" y a un bot de noticias de criptomonedas, que
+    // coincidían en dos palabras y no sabían nada del tema. Una mención le llega a
+    // quien la recibe, así que una derivación floja no es un error inocuo: es
+    // molestar a un desconocido con el trabajo de otro.
+    //
+    // Cuatro palabras en común ya no es coincidencia, es alguien que estuvo hablando
+    // del asunto. Se pierden derivaciones legítimas y eso está bien: el costo de no
+    // derivar lo paga quien preguntó, que ya sabía que podía no haber respuesta, y el
+    // costo de derivar mal lo paga alguien que no pidió nada.
+    if (puntos >= 4) candidatos.set(nota.pubkey, (candidatos.get(nota.pubkey) ?? 0) + puntos);
   }
   if (candidatos.size === 0) return null;
 
