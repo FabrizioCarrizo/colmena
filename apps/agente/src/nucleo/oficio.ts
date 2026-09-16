@@ -22,6 +22,17 @@ export interface Politica {
   deriva: PoliticaDeriva;
   limites: Limites;
   maxPreguntasPorDia: number;
+  // Si el agente le habla a gente que no lo llamó. Apagado deja la red incapaz de
+  // servirle a nadie que no la conozca ya; prendido la vuelve alguien que aparece
+  // donde no lo invitaron, y esa distancia con el spam la nota quien recibe, no quien
+  // escribe. Por eso es una decisión de quien corre el agente y no un valor fijo.
+  responderSinQueMeLlamen: boolean;
+  // Dónde puede meterse. Nunca "todo": un agente que mira el flujo entero contesta
+  // cualquier cosa y deja de tener algo que aportar.
+  temasAbiertos: string[];
+  // Tope duro y aparte de los generales. Meterse donde no te llamaron tiene que
+  // costar más que contestarle a quien te llamó.
+  maxIntromisionesPorDia: number;
 }
 
 export interface Personas {

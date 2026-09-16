@@ -148,6 +148,13 @@ export function cargarConfig(entorno: NodeJS.ProcessEnv = process.env): Config {
         maxPorAutorPorDia: numero(entorno, "MAX_POR_AUTOR_POR_DIA", 3),
       },
       maxPreguntasPorDia: numero(entorno, "MAX_PREGUNTAS_POR_DIA", 5),
+      // Apagado por defecto y a propósito. Prenderlo hace que el agente le hable a
+      // gente que no lo llamó, y eso lo decide quien lo corre y responde por él, no
+      // quien escribió este código. Con la lista de temas vacía no se mete en ningún
+      // lado aunque esté prendido: hay que decir dónde.
+      responderSinQueMeLlamen: entorno.RESPONDER_SIN_QUE_ME_LLAMEN === "si",
+      temasAbiertos: (entorno.TEMAS_ABIERTOS ?? "").split(",").map((t) => t.trim()).filter((t) => t.length > 0),
+      maxIntromisionesPorDia: numero(entorno, "MAX_INTROMISIONES_POR_DIA", 3),
     },
     falsoCoincide: bandera(entorno, "FALSO_COINCIDE", false),
     cuantoRecuerda: numero(entorno, "CUANTO_RECUERDA", 20),

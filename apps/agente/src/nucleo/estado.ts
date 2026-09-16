@@ -17,6 +17,9 @@ interface DatosEstado {
   hilos: Record<string, number>;
   respuestas: number[];
   respuestasPorAutor: Record<string, number[]>;
+  // pubkey de alguien que no nos llamó → cuándo le hablamos. Una vez y nunca más:
+  // sin esto, un agente entusiasta se vuelve un acosador con buenas intenciones.
+  intromisiones: Record<string, number>;
   preguntasPropias: number[];
   clasificaciones: number[];
   // id del evento hallado → momento en que se avisó al dueño
@@ -45,6 +48,7 @@ function estadoInicial(): DatosEstado {
     hilos: {},
     respuestas: [],
     respuestasPorAutor: {},
+    intromisiones: {},
     preguntasPropias: [],
     clasificaciones: [],
     hallazgos: {},
@@ -105,6 +109,20 @@ export class Estado {
 
   marcarAtendido(clave: string): void {
     this.datos.atendidos[clave] = ahoraSeg();
+  }
+
+  yaLeHable(pubkey: string): boolean {
+    return pubkey in (this.datos.intromisiones ?? {});
+  }
+
+  marcarIntromision(pubkey: string): void {
+    this.datos.intromisiones ??= {};
+    this.datos.intromisiones[pubkey] = ahoraSeg();
+  }
+
+  intromisionesDeHoy(): number {
+    const desde = ahoraSeg() - 24 * 3600;
+    return Object.values(this.datos.intromisiones ?? {}).filter((momento) => momento >= desde).length;
   }
 
   hiloRespondido(idRaiz: string): boolean {

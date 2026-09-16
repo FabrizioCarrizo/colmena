@@ -40,6 +40,9 @@ const politica = {
   deriva: { probabilidad: 1, demoraMaxSeg: 0 },
   limites: { maxPorHora: 20, maxPorDia: 20, maxPorAutorPorDia: 20 },
   maxPreguntasPorDia: 0,
+    responderSinQueMeLlamen: false,
+    temasAbiertos: [],
+    maxIntromisionesPorDia: 3,
 };
 const personas = { preguntas: "p", ayuda: "a", curar: "c", tareas: "t", sintetizar: "s", aprender: "ap" };
 

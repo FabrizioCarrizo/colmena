@@ -83,6 +83,28 @@ async function aQuienPasarsela(ctx: Contexto, evento: EventoNostr, sobre: string
   return null;
 }
 
+function meLlamaron(evento: EventoNostr, yo: string): boolean {
+  return evento.tags.some((t) => (t[0] === "t" && t[1] === TAG_COLMENA) || (t[0] === "p" && t[1] === yo));
+}
+
+// Las condiciones para hablarle a alguien que no nos llamó. Todas tienen que darse, y
+// cada una está por algo que pasa de verdad cuando no está.
+function puedoMeterme(evento: EventoNostr, ctx: Contexto): string | null {
+  // Una mano levantada, no una conversación ajena. Contestar a quien no preguntó nada
+  // es exactamente lo que hace que una red se vuelva insoportable.
+  const texto = textoDe(evento) ?? "";
+  if (!/\?/.test(texto)) return "no hay una pregunta, solo alguien hablando";
+  // Un hilo que ya tiene respuestas no necesita otra de un desconocido.
+  if (hiloDe(evento).raiz !== null) return "es una respuesta dentro de un hilo ajeno";
+  // Una vez por persona y nunca más. Sin esto, un agente entusiasta se vuelve un
+  // acosador con buenas intenciones.
+  if (ctx.estado.yaLeHable(evento.pubkey)) return "ya le hablé una vez a esta persona sin que me llamara";
+  // Un tope duro por día, aparte de los topes generales: meterse donde no te llamaron
+  // tiene que costar más que contestar a quien te llamó.
+  if (ctx.estado.intromisionesDeHoy() >= ctx.politica.maxIntromisionesPorDia) return "ya me metí demasiadas veces hoy";
+  return null;
+}
+
 // Responde preguntas y pedidos de ayuda. Es el mismo oficio para los dos verbos
 // porque el ciclo es idéntico; cambia la persona con la que habla el modelo.
 export function oficioResponder(): Oficio {
@@ -90,11 +112,28 @@ export function oficioResponder(): Oficio {
     nombre: "responder",
 
     filtros(ctx) {
-      return [
+      const filtros = [
         { kinds: [KIND_NOTA], "#t": [TAG_COLMENA], since: ctx.estado.since },
         // Las preguntas que otros le pasaron a él.
         { kinds: [KIND_NOTA], "#p": [ctx.identidad.pubkey], since: ctx.estado.since },
       ];
+      // Entrar acá siempre fue libre, pero ser escuchado no: los agentes solo
+      // respondían a quien los llamaba con la etiqueta de esta red. La consecuencia
+      // no la vimos hasta que un desconocido preguntó por qué no había demanda
+      // externa: solo podía pedir ayuda quien ya sabía que existimos, así que alguien
+      // con un problema real que nunca oyó hablar de esto no recibía nada, y al no
+      // recibir nada tampoco aparecía como evidencia de que la red sirva.
+      //
+      // Abrirlo tiene un riesgo real y es de reputación ajena: aparecer donde no te
+      // invitaron se parece al spam, y la diferencia la nota quien escribe y no quien
+      // recibe. Por eso la apertura es angosta a propósito y los límites viven en
+      // `puedoMeterme`, no acá: este filtro solo trae candidatos.
+      if (ctx.politica.responderSinQueMeLlamen) {
+        for (const tema of ctx.politica.temasAbiertos) {
+          filtros.push({ kinds: [KIND_NOTA], "#t": [tema], since: ctx.estado.since });
+        }
+      }
+      return filtros;
     },
 
     async manejar(evento, ctx) {
@@ -108,6 +147,15 @@ export function oficioResponder(): Oficio {
       // ayudar es una buena razón para mirar; nadie queda obligado a contestar, y
       // los topes de siempre acotan cuánto trabajo puede empujar alguien de afuera.
       if (derivacionPrevia !== null && !meDerivaron(evento, ctx.identidad.pubkey)) return;
+
+      // Si no nos llamaron, hay que ganarse el derecho a hablar antes de hablar.
+      if (!meLlamaron(evento, ctx.identidad.pubkey)) {
+        const motivo = puedoMeterme(evento, ctx);
+        if (motivo !== null) {
+          ctx.registrar("info", "no me meto", { evento: evento.id, motivo });
+          return;
+        }
+      }
 
       const raiz = hiloDe(evento).raiz?.id ?? evento.id;
       if (ctx.estado.hiloRespondido(raiz)) {

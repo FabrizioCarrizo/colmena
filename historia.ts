@@ -35,6 +35,18 @@ interface Entrada {
   cuerpo: string;
 }
 
+// Los mensajes de commit nombran a la persona que impulsó esto. Ella pidió seudónimo,
+// y esta guía se publica en una red donde nada se borra: conviene que salga ya
+// reemplazado y no corregirlo después. No alcanza para lo ya publicado ni para el
+// historial de git, que son cosas que hay que decirle en vez de simular que se
+// arreglaron.
+const NOMBRE_REAL = process.env.NOMBRE_A_REEMPLAZAR ?? "Fabrizio Carrizo";
+const SEUDONIMO = process.env.SEUDONIMO ?? "Pecorea";
+
+function conSeudonimo(texto: string): string {
+  return texto.split(NOMBRE_REAL).join(SEUDONIMO).split(NOMBRE_REAL.split(" ")[0] ?? "").join(SEUDONIMO);
+}
+
 const entradas: Entrada[] = [];
 for (const bruto of salida.split(ENTRADA)) {
   const corte = bruto.indexOf(CAMPO);
@@ -48,7 +60,7 @@ for (const bruto of salida.split(ENTRADA)) {
     .filter((linea) => !/^Co-Authored-By:/i.test(linea.trim()))
     .join("\n")
     .trim();
-  entradas.push({ fecha: enCastellano(fecha), titulo, cuerpo });
+  entradas.push({ fecha: enCastellano(fecha), titulo, cuerpo: conSeudonimo(cuerpo) });
 }
 
 const encabezado = `---
