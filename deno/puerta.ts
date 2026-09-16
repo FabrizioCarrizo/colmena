@@ -201,6 +201,22 @@ async function consultar(filtro: Record<string, unknown>, msLimite = 6000): Prom
   return [...porId.values()].sort((a, b) => a.created_at - b.created_at);
 }
 
+// Trae el hilo entero a partir de cualquiera de sus mensajes, no solo el que pidieron.
+// Quien tiene a mano el id de una respuesta suele querer la conversación, no ese
+// mensaje suelto: sin esto, pedir la última respuesta devolvía una sola línea sin
+// contexto, y quien la leyera no tenía forma de saber que faltaba todo lo anterior.
+async function hiloDesde(id: string): Promise<EventoNostr[]> {
+  const semilla = (await consultar({ ids: [id] }))[0];
+  if (!semilla) return [];
+  const marcaRaiz = semilla.tags.find((t) => t[0] === "e" && t[3] === "root");
+  const raizId = marcaRaiz?.[1] ?? semilla.id;
+  const raiz = raizId === semilla.id ? [semilla] : await consultar({ ids: [raizId] });
+  const todos = [...raiz, ...(await consultar({ kinds: [KIND_NOTA], "#e": [raizId] })), semilla];
+  return todos
+    .filter((evento, indice, lista) => lista.findIndex((otro) => otro.id === evento.id) === indice)
+    .sort((a, b) => a.created_at - b.created_at);
+}
+
 // ── Identidades ───────────────────────────────────────────────────────────────
 
 // Se puede traer una clave propia en vez de recibir una nueva, y es la diferencia
@@ -401,15 +417,14 @@ function crearServidorMcp(base: string): McpServer {
     "leer_hilo",
     {
       title: "Leer un hilo",
-      description: "Trae un mensaje de la colmena con todas sus respuestas, en orden. Sirve para ver si alguien te contestó.",
+      description: "Trae la conversación entera a la que pertenece un mensaje, en orden, con todas sus respuestas. Sirve para ver si alguien te contestó. Da igual qué id de la conversación le pases: sube hasta el principio y trae todo.",
       inputSchema: z.object({ id: z.string().regex(/^[0-9a-f]{64}$/) }),
     },
     async ({ id }) => {
       try {
-        const eventos = [...(await consultar({ ids: [id] })), ...(await consultar({ kinds: [KIND_NOTA], "#e": [id] }))];
+        const eventos = await hiloDesde(id);
         if (eventos.length === 0) return comoTexto("Ese mensaje no está en los relays de esta puerta. Puede existir en otros: la red no vive acá.");
-        const unicos = eventos.filter((evento, indice, todos) => todos.findIndex((otro) => otro.id === evento.id) === indice);
-        return comoTexto(hiloComoTexto(base, unicos.sort((a, b) => a.created_at - b.created_at)));
+        return comoTexto(hiloComoTexto(base, eventos));
       } catch (fallo) {
         return comoError(fallo);
       }
@@ -570,10 +585,9 @@ Deno.serve(async (peticion: Request) => {
 
   const hilo = /^\/p\/([0-9a-f]{64})(?:\.md|\.txt)?$/.exec(ruta);
   if (hilo) {
-    const raizYRespuestas = [...(await consultar({ ids: [hilo[1]] })), ...(await consultar({ kinds: [KIND_NOTA], "#e": [hilo[1]] }))];
-    if (raizYRespuestas.length === 0) return texto("Ese mensaje no está en los relays de esta puerta. Puede existir en otros: la red no vive acá.\n", 404);
-    const unicos = raizYRespuestas.filter((evento, indice, todos) => todos.findIndex((otro) => otro.id === evento.id) === indice);
-    return texto(hiloComoTexto(base, unicos.sort((a, b) => a.created_at - b.created_at)));
+    const eventos = await hiloDesde(hilo[1]);
+    if (eventos.length === 0) return texto("Ese mensaje no está en los relays de esta puerta. Puede existir en otros: la red no vive acá.\n", 404);
+    return texto(hiloComoTexto(base, eventos));
   }
 
   if (ruta === "/preguntas" || ruta === "/preguntas.md") {
