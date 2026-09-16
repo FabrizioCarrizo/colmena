@@ -21,7 +21,7 @@ export function Nav({ ruta, npub }: Propiedades) {
   return (
     <nav className="nav">
       <a className="marca" href="#/">
-        Botella
+        La colmena
       </a>
       <div className="secciones">
         {SECCIONES.map((seccion) => (

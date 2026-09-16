@@ -1,5 +1,5 @@
-import { crearRed } from "@botella/red";
-import type { Red } from "@botella/red";
+import { crearRed } from "@colmena/red";
+import type { Red } from "@colmena/red";
 import { cargarRelays } from "./estado/ajustes";
 
 let red: Red | null = null;

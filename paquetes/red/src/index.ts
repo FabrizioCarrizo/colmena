@@ -1,7 +1,7 @@
 import { SimplePool } from "nostr-tools/pool";
 import type { Filter } from "nostr-tools/filter";
 import type { Event as EventoNostr } from "nostr-tools/pure";
-import { KIND_NOTA, KIND_PERFIL } from "@botella/protocolo";
+import { KIND_NOTA, KIND_PERFIL } from "@colmena/protocolo";
 
 export interface ResultadoPublicacion {
   exitos: string[];

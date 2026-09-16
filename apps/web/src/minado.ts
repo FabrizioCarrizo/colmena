@@ -1,6 +1,6 @@
 import { finalizeEvent } from "nostr-tools/pure";
 import type { EventTemplate, VerifiedEvent } from "nostr-tools/pure";
-import type { EventoMinado } from "@botella/protocolo";
+import type { EventoMinado } from "@colmena/protocolo";
 import type { Claves } from "./estado/claves";
 import type { PedidoDeMinado } from "./pow.worker";
 

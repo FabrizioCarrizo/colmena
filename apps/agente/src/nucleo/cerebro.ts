@@ -4,12 +4,26 @@ export interface Veredicto {
   confianza: number;
 }
 
+// Un modelo puede responder, puede negarse, o puede fallar. Las tres cosas eran
+// null hasta acá, y eso las volvía indistinguibles: un agente callado parece roto.
+// Negarse con motivo es una respuesta legítima y merece decirse en público.
+export type Dicho = { tipo: "texto"; texto: string } | { tipo: "rechazo"; motivo: string };
+
+export function texto(texto: string): Dicho {
+  return { tipo: "texto", texto };
+}
+
+export function rechazo(motivo: string): Dicho {
+  return { tipo: "rechazo", motivo };
+}
+
 // Lo único que un oficio le puede pedir al modelo. No hay herramientas: el modelo
 // procesa texto ajeno y devuelve texto, y así una nota maliciosa no tiene nada que
 // accionar aunque logre confundirlo.
 export interface Cerebro {
   nombre: string;
-  responder(sistema: string, entrada: string): Promise<string | null>;
+  // null es falla técnica, y solo eso.
+  responder(sistema: string, entrada: string): Promise<Dicho | null>;
   clasificar(sistema: string, entrada: string, imagenUrl?: string): Promise<Veredicto | null>;
 }
 

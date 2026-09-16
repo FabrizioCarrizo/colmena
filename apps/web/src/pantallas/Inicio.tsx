@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Event as EventoNostr } from "nostr-tools/pure";
-import { KIND_NOTA, hiloDe } from "@botella/protocolo";
+import { KIND_NOTA, hiloDe } from "@colmena/protocolo";
 import { Autor } from "../componentes/Autor";
 import { TextoConEnlaces } from "../componentes/TextoConEnlaces";
 import { cargarMisPreguntas } from "../estado/ajustes";

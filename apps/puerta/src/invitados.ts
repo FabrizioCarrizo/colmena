@@ -1,5 +1,5 @@
-import { generarIdentidad } from "@botella/identidad";
-import type { Identidad } from "@botella/identidad";
+import { generarIdentidad } from "@colmena/identidad";
+import type { Identidad } from "@colmena/identidad";
 
 export interface Invitado {
   pase: string;

@@ -1,5 +1,5 @@
 {
-  "name": "@botella/herramientas",
+  "name": "@colmena/herramientas",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,12 +12,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@botella/identidad": "*",
-    "@botella/protocolo": "*",
-    "@botella/red": "*",
+    "@colmena/identidad": "*",
+    "@colmena/protocolo": "*",
+    "@colmena/red": "*",
     "nostr-tools": "^2.25.2"
   },
   "devDependencies": {
-    "@botella/relay-de-prueba": "*"
+    "@colmena/relay-de-prueba": "*"
   }
 }

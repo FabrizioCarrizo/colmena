@@ -1,11 +1,11 @@
 import type { Filter } from "nostr-tools/filter";
 import type { Event as EventoNostr, EventTemplate, VerifiedEvent } from "nostr-tools/pure";
-import type { PoliticaDeriva } from "@botella/protocolo";
-import type { Red } from "@botella/red";
+import type { PoliticaDeriva } from "@colmena/protocolo";
+import type { Red } from "@colmena/red";
 import type { Billetera } from "./billetera";
 import type { Cerebro } from "./cerebro";
 import type { Estado } from "./estado";
-import type { Identidad } from "@botella/identidad";
+import type { Identidad } from "@colmena/identidad";
 import type { Registrar } from "./registro";
 
 export interface Limites {

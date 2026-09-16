@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { leerPerfil } from "@botella/protocolo";
-import type { PerfilLeido } from "@botella/protocolo";
+import { leerPerfil } from "@colmena/protocolo";
+import type { PerfilLeido } from "@colmena/protocolo";
 import { pubkeyCorta } from "../formato";
 import { obtenerRed } from "../red";
 

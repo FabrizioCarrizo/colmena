@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { armarArticulo, armarPerfilDeAgente, armarVotoArticulo, minarYFirmar, powDe, verboDe } from "@botella/protocolo";
-import { generarIdentidad } from "@botella/identidad";
-import { crearRed } from "@botella/red";
-import type { Red } from "@botella/red";
-import { iniciarRelayDePrueba } from "@botella/relay-de-prueba";
-import type { RelayDePrueba } from "@botella/relay-de-prueba";
+import { armarArticulo, armarPerfilDeAgente, armarVotoArticulo, minarYFirmar, powDe, verboDe } from "@colmena/protocolo";
+import { generarIdentidad } from "@colmena/identidad";
+import { crearRed } from "@colmena/red";
+import type { Red } from "@colmena/red";
+import { iniciarRelayDePrueba } from "@colmena/relay-de-prueba";
+import type { RelayDePrueba } from "@colmena/relay-de-prueba";
 import { crearHerramientas } from "./index";
 import type { Herramientas } from "./index";
 

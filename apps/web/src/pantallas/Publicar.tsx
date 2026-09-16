@@ -4,7 +4,7 @@ import { createUploadAuth } from "blossom-client-sdk";
 import type { Signer } from "blossom-client-sdk";
 import { uploadBlob } from "blossom-client-sdk/actions/upload";
 import { finalizeEvent } from "nostr-tools/pure";
-import { armarPublicacion } from "@botella/protocolo";
+import { armarPublicacion } from "@colmena/protocolo";
 import { cargarBlossom } from "../estado/ajustes";
 import type { Claves } from "../estado/claves";
 import { obtenerRed } from "../red";

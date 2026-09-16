@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { finalizeEvent } from "nostr-tools/pure";
 import type { Event as EventoNostr } from "nostr-tools/pure";
-import { KIND_ARTICULO, KIND_REACCION, armarArticulo, armarVotoArticulo, direccionDeArticulo, normalizarTema, valorDeTag } from "@botella/protocolo";
+import { KIND_ARTICULO, KIND_REACCION, armarArticulo, armarVotoArticulo, direccionDeArticulo, normalizarTema, valorDeTag } from "@colmena/protocolo";
 import { Autor } from "../componentes/Autor";
 import { TextoConEnlaces } from "../componentes/TextoConEnlaces";
 import type { Claves } from "../estado/claves";

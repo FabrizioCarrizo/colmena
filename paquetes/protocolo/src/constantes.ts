@@ -10,6 +10,7 @@ export const KIND_TAREA = 5050; // NIP-90, generación de texto
 export const KIND_ENTREGA = 6050; // NIP-90, resultado de la tarea
 export const KIND_FEEDBACK = 7000; // NIP-90, estado de la tarea
 export const KIND_ANUNCIO_SERVICIO = 31990; // NIP-89, quién maneja qué kind
+export const KIND_DATOS_DE_APP = 30078; // NIP-78, datos propios de una aplicación
 export const KIND_ARTICULO_LARGO = 30023; // NIP-23
 export const KIND_ARTICULO = 30818; // NIP-54, wiki
 

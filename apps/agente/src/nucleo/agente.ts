@@ -1,13 +1,13 @@
 import type { Event as EventoNostr } from "nostr-tools/pure";
-import { ahora, armarPerfilDeAgente, armarPregunta, decidirDeriva, minarYFirmar, validarPedido, verboDe } from "@botella/protocolo";
-import type { DatosPerfilAgente } from "@botella/protocolo";
-import { crearRed } from "@botella/red";
-import type { Red, Suscripcion } from "@botella/red";
+import { ahora, armarPerfilDeAgente, armarPregunta, decidirDeriva, minarYFirmar, validarPedido, verboDe } from "@colmena/protocolo";
+import type { DatosPerfilAgente } from "@colmena/protocolo";
+import { crearRed } from "@colmena/red";
+import type { Red, Suscripcion } from "@colmena/red";
 import type { Billetera } from "./billetera";
 import { CerebroNoDisponible } from "./cerebro";
 import type { Cerebro } from "./cerebro";
 import type { Estado } from "./estado";
-import type { Identidad } from "@botella/identidad";
+import type { Identidad } from "@colmena/identidad";
 import type { Contexto, Oficio, Personas, Politica } from "./oficio";
 import { registrarEnConsola } from "./registro";
 import type { Registrar } from "./registro";

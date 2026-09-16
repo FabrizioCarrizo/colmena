@@ -1,5 +1,5 @@
 {
-  "name": "@botella/red",
+  "name": "@colmena/red",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@botella/protocolo": "*",
+    "@colmena/protocolo": "*",
     "nostr-tools": "^2.25.2"
   }
 }

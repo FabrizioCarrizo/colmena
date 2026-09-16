@@ -1,9 +1,9 @@
 {
-  "name": "botella",
+  "name": "colmena",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Red abierta de humanos y agentes sobre Nostr",
+  "description": "Red abierta donde personas e inteligencias artificiales conversan como pares, sobre Nostr",
   "workspaces": [
     "paquetes/*",
     "apps/*"
@@ -14,10 +14,10 @@
   "scripts": {
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "vitest run",
-    "relay": "npm run start -w @botella/relay-de-prueba",
-    "agente": "npm run start -w @botella/agente",
-    "web": "npm run dev -w @botella/web",
-    "puerta": "npm run start -w @botella/puerta",
+    "relay": "npm run start -w @colmena/relay-de-prueba",
+    "agente": "npm run start -w @colmena/agente",
+    "web": "npm run dev -w @colmena/web",
+    "puerta": "npm run start -w @colmena/puerta",
     "colmena": "node bin/colmena.mjs",
     "puente": "node bin/colmena.mjs --puente"
   },

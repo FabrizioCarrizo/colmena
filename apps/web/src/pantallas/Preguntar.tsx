@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
-import { LARGO_MAX_PEDIDO, POW_PEDIDO, armarPregunta } from "@botella/protocolo";
+import { LARGO_MAX_PEDIDO, POW_PEDIDO, armarPregunta } from "@colmena/protocolo";
 import { recordarPregunta } from "../estado/ajustes";
 import type { Claves } from "../estado/claves";
 import { minarYFirmarEnWorker } from "../minado";

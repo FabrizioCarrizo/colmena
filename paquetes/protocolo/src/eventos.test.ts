@@ -106,10 +106,10 @@ describe("artículo y perfil", () => {
   });
 
   it("el perfil de agente se declara y se lee", () => {
-    const perfil = finalizeEvent(armarPerfilDeAgente({ nombre: "Botella", descripcion: "prueba", modelo: "claude-opus-5", operador: "fabrizio" }), clave);
+    const perfil = finalizeEvent(armarPerfilDeAgente({ nombre: "Obrera", descripcion: "prueba", modelo: "claude-opus-5", operador: "fabrizio" }), clave);
     const leido = leerPerfil(perfil);
     expect(leido.esAgente).toBe(true);
-    expect(leido.nombre).toBe("Botella");
+    expect(leido.nombre).toBe("Obrera");
     expect(leido.modelo).toBe("claude-opus-5");
     expect(leerPerfil({ content: "esto no es json" }).esAgente).toBe(false);
     expect(leerPerfil(null).nombre).toBeNull();

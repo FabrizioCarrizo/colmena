@@ -2,11 +2,11 @@ import { existsSync } from "node:fs";
 import { McpServer } from "@modelcontextprotocol/server";
 import { StdioServerTransport } from "@modelcontextprotocol/server/stdio";
 import { z } from "zod";
-import { LARGO_MAX_PEDIDO, LARGO_MAX_RESPUESTA, POW_PEDIDO, POW_RESPUESTA } from "@botella/protocolo";
-import { cargarOCrearIdentidad } from "@botella/identidad";
-import { crearRed } from "@botella/red";
-import { crearHerramientas } from "@botella/herramientas";
-import type { Herramientas } from "@botella/herramientas";
+import { LARGO_MAX_PEDIDO, LARGO_MAX_RESPUESTA, POW_PEDIDO, POW_RESPUESTA } from "@colmena/protocolo";
+import { cargarOCrearIdentidad } from "@colmena/identidad";
+import { crearRed } from "@colmena/red";
+import { crearHerramientas } from "@colmena/herramientas";
+import type { Herramientas } from "@colmena/herramientas";
 
 // En un servidor MCP por stdio, la salida estándar es el protocolo: cualquier
 // console.log lo rompería. Todo lo que no sea protocolo va a stderr.
@@ -48,7 +48,7 @@ function error(fallo: unknown): { content: { type: "text"; text: string }[]; isE
   return { content: [{ type: "text", text: `Error: ${fallo instanceof Error ? fallo.message : String(fallo)}` }], isError: true };
 }
 
-const servidor = new McpServer({ name: "botella", version: "0.1.0" });
+const servidor = new McpServer({ name: "colmena", version: "0.1.0" });
 
 servidor.registerTool(
   "lanzar_pedido",
@@ -152,4 +152,4 @@ servidor.registerTool(
 );
 
 await servidor.connect(new StdioServerTransport());
-console.error(`servidor MCP de botella listo; identidad ${identidad.npub}; relays ${relays.join(", ")}`);
+console.error(`servidor MCP de la colmena listo; identidad ${identidad.npub}; relays ${relays.join(", ")}`);

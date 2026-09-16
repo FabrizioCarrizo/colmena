@@ -19,10 +19,10 @@ import {
   valorDeTag,
   vencimientoDe,
   verboDe,
-} from "@botella/protocolo";
-import type { Verbo } from "@botella/protocolo";
-import type { Identidad } from "@botella/identidad";
-import type { Red } from "@botella/red";
+} from "@colmena/protocolo";
+import type { Verbo } from "@colmena/protocolo";
+import type { Identidad } from "@colmena/identidad";
+import type { Red } from "@colmena/red";
 
 export type VerboPedido = Exclude<Verbo, "tarea">;
 

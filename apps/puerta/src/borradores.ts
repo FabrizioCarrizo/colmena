@@ -1,4 +1,4 @@
-import type { Verbo } from "@botella/protocolo";
+import type { Verbo } from "@colmena/protocolo";
 
 export interface Borrador {
   id: string;

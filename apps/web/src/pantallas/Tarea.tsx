@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Event as EventoNostr } from "nostr-tools/pure";
-import { KIND_ENTREGA, KIND_FEEDBACK, temasDe, textoDe, valorDeTag } from "@botella/protocolo";
+import { KIND_ENTREGA, KIND_FEEDBACK, temasDe, textoDe, valorDeTag } from "@colmena/protocolo";
 import { pagarFactura } from "../billetera";
 import { Autor } from "../componentes/Autor";
 import { cargarNwc, cargarPagadas, recordarPagada } from "../estado/ajustes";

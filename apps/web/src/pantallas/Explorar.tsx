@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Event as EventoNostr } from "nostr-tools/pure";
-import { KIND_NOTA, KIND_PUBLICACION, KIND_TAREA, imetaDe, normalizarTema, temasDe, textoDe, valorDeTag } from "@botella/protocolo";
+import { KIND_NOTA, KIND_PUBLICACION, KIND_TAREA, imetaDe, normalizarTema, temasDe, textoDe, valorDeTag } from "@colmena/protocolo";
 import type { Filter } from "nostr-tools/filter";
 import { Autor } from "../componentes/Autor";
 import { cargarMisPreguntas } from "../estado/ajustes";

@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { CerebroNoDisponible, analizarVeredicto } from "../nucleo/cerebro";
-import type { Cerebro } from "../nucleo/cerebro";
+import { CerebroNoDisponible, analizarVeredicto, rechazo, texto as comoTexto } from "../nucleo/cerebro";
+import type { Cerebro, Dicho } from "../nucleo/cerebro";
 import { registrarEnConsola } from "../nucleo/registro";
 import type { Registrar } from "../nucleo/registro";
 
@@ -21,7 +21,7 @@ export function cerebroClaude(opciones: OpcionesClaude = {}): Cerebro {
   const modelo = opciones.modelo ?? MODELO_POR_DEFECTO;
   const registrar = opciones.registrar ?? registrarEnConsola;
 
-  async function llamar(sistema: string, contenido: string | Anthropic.Beta.BetaContentBlockParam[]): Promise<string | null> {
+  async function llamar(sistema: string, contenido: string | Anthropic.Beta.BetaContentBlockParam[]): Promise<Dicho | null> {
     try {
       const respuesta = await cliente.beta.messages.create({
         model: modelo,
@@ -37,15 +37,16 @@ export function cerebroClaude(opciones: OpcionesClaude = {}): Cerebro {
         ...(opciones.esfuerzo ? { output_config: { effort: opciones.esfuerzo } } : {}),
       });
       if (respuesta.stop_reason === "refusal") {
-        registrar("aviso", "el modelo declinó responder", { categoria: respuesta.stop_details?.category ?? null });
-        return null;
+        const categoria = respuesta.stop_details?.category ?? null;
+        registrar("aviso", "el modelo declinó responder", { categoria });
+        return rechazo(`No voy a responder esto${categoria ? ` (${categoria})` : ""}. Si creés que me equivoco, decilo en el hilo.`);
       }
-      const texto = respuesta.content
+      const dicho = respuesta.content
         .filter((bloque): bloque is Anthropic.Beta.BetaTextBlock => bloque.type === "text")
         .map((bloque) => bloque.text)
         .join("\n")
         .trim();
-      return texto.length > 0 ? texto : null;
+      return dicho.length > 0 ? comoTexto(dicho) : null;
     } catch (error) {
       if (error instanceof Anthropic.RateLimitError || error instanceof Anthropic.InternalServerError || error instanceof Anthropic.APIConnectionError) {
         throw new CerebroNoDisponible(error.message);
@@ -68,8 +69,8 @@ export function cerebroClaude(opciones: OpcionesClaude = {}): Cerebro {
         type: "text",
         text: `${entrada}\n\nRespondé únicamente con un JSON de esta forma: {"coincide": true o false, "motivo": "una frase", "confianza": número entre 0 y 1}.`,
       });
-      const texto = await llamar(sistema, bloques);
-      return texto ? analizarVeredicto(texto) : null;
+      const dicho = await llamar(sistema, bloques);
+      return dicho?.tipo === "texto" ? analizarVeredicto(dicho.texto) : null;
     },
   };
 }

@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
 import { createServer } from "node:http";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { crearRed } from "@botella/red";
-import { cargarOCrearIdentidad } from "@botella/identidad";
+import { crearRed } from "@colmena/red";
+import { cargarOCrearIdentidad } from "@colmena/identidad";
 import {
   KIND_ARTICULO,
   KIND_NOTA,
@@ -11,7 +11,7 @@ import {
   armarPerfilDeAgente,
   minarYFirmar,
   normalizarTema,
-} from "@botella/protocolo";
+} from "@colmena/protocolo";
 import { cargarConfig } from "./config";
 import type { ConfigPuerta } from "./config";
 import { crearColmena } from "./colmena";

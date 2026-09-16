@@ -17,7 +17,7 @@ import {
   temasDe,
   textoDe,
   valorDeTag,
-} from "@botella/protocolo";
+} from "@colmena/protocolo";
 import { Autor } from "../componentes/Autor";
 import type { Claves } from "../estado/claves";
 import { fechaCorta } from "../formato";

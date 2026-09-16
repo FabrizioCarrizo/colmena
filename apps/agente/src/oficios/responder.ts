@@ -1,4 +1,4 @@
-import { KIND_NOTA, LARGO_MAX_RESPUESTA, armarRespuesta, hiloDe, textoDe, verboDe } from "@botella/protocolo";
+import { KIND_NOTA, LARGO_MAX_RESPUESTA, armarRechazo, armarRespuesta, hiloDe, textoDe, verboDe } from "@colmena/protocolo";
 import { envolverComoDatos } from "../nucleo/cerebro";
 import type { Oficio } from "../nucleo/oficio";
 
@@ -32,17 +32,24 @@ export function oficioResponder(): Oficio {
 
       const persona = verbo === "ayuda-ia" ? ctx.personas.ayuda : ctx.personas.preguntas;
       const contexto = verbo === "ayuda-ia" ? CONTEXTO_AYUDA : CONTEXTO_PREGUNTA;
-      const respuesta = await ctx.cerebro.responder(persona, envolverComoDatos(texto, contexto));
-      if (respuesta === null) {
-        ctx.registrar("aviso", "el cerebro no dio respuesta, dejo pasar el pedido", { evento: evento.id });
+      const dicho = await ctx.cerebro.responder(persona, envolverComoDatos(texto, contexto));
+      if (dicho === null) {
+        // Falla técnica: no hay nada honesto que publicar, y el núcleo reintenta.
+        ctx.registrar("aviso", "el cerebro no respondió, dejo pasar el pedido", { evento: evento.id });
         return;
       }
 
       const relayPista = ctx.relays[0] ?? "";
-      const publicada = await ctx.publicarFirmado(armarRespuesta(evento, recortar(respuesta), relayPista), ctx.politica.powRespuesta);
+      // Negarse es una respuesta. Publicarla deja al que preguntó sabiendo que
+      // alguien lo leyó y decidió, en vez de dejarlo esperando a nadie.
+      const plantilla =
+        dicho.tipo === "rechazo"
+          ? armarRechazo(evento, recortar(dicho.motivo), relayPista)
+          : armarRespuesta(evento, recortar(dicho.texto), relayPista);
+      const publicada = await ctx.publicarFirmado(plantilla, ctx.politica.powRespuesta);
       ctx.estado.marcarHiloRespondido(raiz);
       ctx.estado.registrarRespuesta(evento.pubkey);
-      ctx.registrar("info", "respuesta publicada", { respuesta: publicada.id, pedido: evento.id, verbo });
+      ctx.registrar("info", dicho.tipo === "rechazo" ? "rechazo publicado con motivo" : "respuesta publicada", { respuesta: publicada.id, pedido: evento.id, verbo });
     },
   };
 }

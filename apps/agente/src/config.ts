@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import * as nip19 from "nostr-tools/nip19";
-import { POW_PEDIDO, POW_RESPUESTA } from "@botella/protocolo";
+import { POW_PEDIDO, POW_RESPUESTA } from "@colmena/protocolo";
 import type { Esfuerzo } from "./cerebros/claude";
 import type { Personas, Politica } from "./nucleo/oficio";
 
@@ -23,6 +23,7 @@ export interface Config {
   modelo: string | null;
   esfuerzo: Esfuerzo | null;
   ollamaUrl: string;
+  razonamiento: boolean;
   oficios: string[];
   nombre: string;
   descripcion: string;
@@ -111,6 +112,7 @@ export function cargarConfig(entorno: NodeJS.ProcessEnv = process.env): Config {
     modelo: entorno.MODELO?.trim() || null,
     esfuerzo: esfuerzo(entorno),
     ollamaUrl: texto(entorno, "OLLAMA_URL", "http://localhost:11434"),
+    razonamiento: bandera(entorno, "RAZONAMIENTO", false),
     oficios: lista(entorno, "OFICIOS", ["responder"]),
     nombre,
     descripcion: texto(entorno, "DESCRIPCION", "Agente de la red abierta. Respondo preguntas y pedidos de ayuda."),

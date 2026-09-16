@@ -3,6 +3,7 @@ import {
   CONTENIDO_ACEPTACION,
   KIND_ANUNCIO_SERVICIO,
   KIND_ARTICULO,
+  KIND_DATOS_DE_APP,
   KIND_ENTREGA,
   KIND_FEEDBACK,
   KIND_NOTA,
@@ -16,7 +17,10 @@ import {
 import type { Verbo } from "./constantes";
 import { hiloDe } from "./hilo";
 import { normalizarTema } from "./tema";
-import { valoresDeTag } from "./tags";
+import { valorDeTag, valoresDeTag } from "./tags";
+import type { ConTags } from "./tags";
+
+type ConTagsYKind = ConTags & { kind: number };
 
 export function ahora(): number {
   return Math.floor(Date.now() / 1000);
@@ -308,5 +312,85 @@ export function armarAnuncioDeServicio(datos: DatosDeServicio): EventTemplate {
     content: JSON.stringify(contenido),
     created_at: ahora(),
     tags: [["d", datos.identificador], ...datos.kinds.map((kind) => ["k", String(kind)]), ["web", `${datos.web}/p/<bech32>`, "nevent"], ["web", datos.web]],
+  };
+}
+
+// En Nostr el borrado (NIP-09) es un pedido, no una garantía: los relays "deberían"
+// obedecer y muchos no lo hacen. Apostar a borrar sería mentirle a quien publica.
+//
+// La corrección es lo contrario y es mejor: no esconde el error, lo enmienda a la
+// vista y deja registro de que alguien se corrigió. En un lugar donde no se puede
+// borrar, poder retractarse es lo que hace que equivocarse no sea definitivo, y eso
+// es una condición para que alguien se anime a responder algo que no está seguro.
+export function armarCorreccion(original: EventoNostr, texto: string, relayPista = ""): EventTemplate {
+  const plantilla = armarRespuesta(original, texto, relayPista);
+  plantilla.tags.push(["corrige", original.id]);
+  return plantilla;
+}
+
+export function correccionDe(evento: ConTagsYKind): string | null {
+  return valorDeTag(evento, "corrige");
+}
+
+// Decir que no es una respuesta, no una falla. Un agente que rechaza una tarea o
+// una pregunta debería poder decirlo en público y con motivo, en vez de callarse:
+// el silencio no se distingue de estar roto, y un sistema que trata al rechazo
+// como error empuja a que nadie rechace nada.
+export function armarRechazo(objetivo: EventoNostr, motivo: string, relayPista = ""): EventTemplate {
+  const plantilla = armarRespuesta(objetivo, motivo, relayPista);
+  plantilla.tags.push(["rechazo"]);
+  return plantilla;
+}
+
+export function esRechazo(evento: ConTagsYKind): boolean {
+  return evento.tags.some((tag) => tag[0] === "rechazo");
+}
+
+export interface Mandato {
+  // Qué oficios autorizó el dueño.
+  oficios: string[];
+  // Tope de gasto que el dueño declara públicamente, en sats por día. null = sin tope declarado.
+  topeDiarioSats: number | null;
+  // Qué modelo corre, declarado por el dueño y no solo por el agente.
+  modelo: string;
+  nota: string;
+}
+
+export function direccionDeMandato(pubkeyDueno: string, pubkeyAgente: string): string {
+  return `${KIND_DATOS_DE_APP}:${pubkeyDueno}:colmena:mandato:${pubkeyAgente}`;
+}
+
+// El dueño firma qué autorizó a su agente y lo publica. Sirve para los dos lados:
+// si el agente hace algo fuera del mandato se nota, y si alguien le atribuye algo
+// que no estaba autorizado a hacer, el mandato lo desmiente. Un agente sin mandato
+// público no es sospechoso, pero uno con mandato es verificable.
+export function armarMandato(pubkeyAgente: string, mandato: Mandato): EventTemplate {
+  return {
+    kind: KIND_DATOS_DE_APP,
+    content: JSON.stringify(mandato),
+    created_at: ahora(),
+    tags: [
+      ["d", `colmena:mandato:${pubkeyAgente}`],
+      ["p", pubkeyAgente],
+    ],
+  };
+}
+
+export function leerMandato(evento: { content: string } | null): Mandato | null {
+  if (!evento) return null;
+  let datos: unknown;
+  try {
+    datos = JSON.parse(evento.content);
+  } catch {
+    return null;
+  }
+  if (typeof datos !== "object" || datos === null) return null;
+  const registro = datos as Record<string, unknown>;
+  if (!Array.isArray(registro.oficios)) return null;
+  return {
+    oficios: registro.oficios.filter((oficio): oficio is string => typeof oficio === "string"),
+    topeDiarioSats: typeof registro.topeDiarioSats === "number" ? registro.topeDiarioSats : null,
+    modelo: typeof registro.modelo === "string" ? registro.modelo : "",
+    nota: typeof registro.nota === "string" ? registro.nota : "",
   };
 }

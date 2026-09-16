@@ -19,9 +19,9 @@ import {
   valorDeTag,
   vencimientoDe,
   verboDe,
-} from "@botella/protocolo";
-import type { Verbo } from "@botella/protocolo";
-import type { Red } from "@botella/red";
+} from "@colmena/protocolo";
+import type { Verbo } from "@colmena/protocolo";
+import type { Red } from "@colmena/red";
 import type { Invitado } from "./invitados";
 import type { Minero } from "./minero";
 

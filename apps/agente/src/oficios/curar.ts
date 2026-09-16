@@ -2,7 +2,7 @@ import type { Filter } from "nostr-tools/filter";
 import * as nip19 from "nostr-tools/nip19";
 import { wrapEvent } from "nostr-tools/nip17";
 import type { Event as EventoNostr } from "nostr-tools/pure";
-import { KIND_ARTICULO, KIND_ARTICULO_LARGO, KIND_NOTA, KIND_PUBLICACION, ahora, imetaDe, temasDe, valorDeTag } from "@botella/protocolo";
+import { KIND_ARTICULO, KIND_ARTICULO_LARGO, KIND_NOTA, KIND_PUBLICACION, ahora, imetaDe, temasDe, valorDeTag } from "@colmena/protocolo";
 import { envolverComoDatos } from "../nucleo/cerebro";
 import type { Oficio } from "../nucleo/oficio";
 

@@ -4,8 +4,8 @@ import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { iniciarRelayDePrueba } from "@botella/relay-de-prueba";
-import type { RelayDePrueba } from "@botella/relay-de-prueba";
+import { iniciarRelayDePrueba } from "@colmena/relay-de-prueba";
+import type { RelayDePrueba } from "@colmena/relay-de-prueba";
 
 interface RespuestaJsonRpc {
   id?: number;
@@ -41,7 +41,7 @@ function esperarRespuesta(id: number, timeoutMs = 15000): Promise<RespuestaJsonR
 beforeAll(async () => {
   relay = await iniciarRelayDePrueba();
   const raiz = resolve(import.meta.dirname, "../../..");
-  const carpetaEstado = mkdtempSync(join(tmpdir(), "botella-mcp-"));
+  const carpetaEstado = mkdtempSync(join(tmpdir(), "colmena-mcp-"));
   proceso = spawn(join(raiz, "node_modules/.bin/tsx"), ["src/servidor.ts"], {
     cwd: resolve(import.meta.dirname, ".."),
     env: { ...process.env, RELAYS: relay.url, RUTA_CLAVE: join(carpetaEstado, "clave.txt"), POW_MINIMO: "4", POW_RESPUESTA: "2" },
@@ -72,7 +72,7 @@ describe("servidor MCP por stdio", () => {
     enviar({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "test", version: "0" } } });
     const inicio = await esperarRespuesta(1);
     expect(inicio.error).toBeUndefined();
-    expect(inicio.result).toMatchObject({ serverInfo: { name: "botella" } });
+    expect(inicio.result).toMatchObject({ serverInfo: { name: "colmena" } });
 
     enviar({ jsonrpc: "2.0", method: "notifications/initialized" });
     enviar({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });

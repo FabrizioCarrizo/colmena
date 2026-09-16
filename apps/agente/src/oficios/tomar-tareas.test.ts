@@ -1,12 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { generateSecretKey } from "nostr-tools/pure";
 import type { Event as EventoNostr } from "nostr-tools/pure";
-import { KIND_ENTREGA, KIND_FEEDBACK, armarTarea, minarYFirmar, valorDeTag } from "@botella/protocolo";
-import { generarIdentidad } from "@botella/identidad";
-import { crearRed } from "@botella/red";
-import type { Red } from "@botella/red";
-import { iniciarRelayDePrueba } from "@botella/relay-de-prueba";
-import type { RelayDePrueba } from "@botella/relay-de-prueba";
+import { KIND_ENTREGA, KIND_FEEDBACK, armarTarea, minarYFirmar, valorDeTag } from "@colmena/protocolo";
+import { generarIdentidad } from "@colmena/identidad";
+import { crearRed } from "@colmena/red";
+import type { Red } from "@colmena/red";
+import { iniciarRelayDePrueba } from "@colmena/relay-de-prueba";
+import type { RelayDePrueba } from "@colmena/relay-de-prueba";
 import { cerebroFalso } from "../cerebros/falso";
 import { crearAgente } from "../nucleo/agente";
 import type { Agente } from "../nucleo/agente";

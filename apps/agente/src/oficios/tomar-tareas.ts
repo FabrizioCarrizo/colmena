@@ -1,4 +1,4 @@
-import { KIND_TAREA, LARGO_MAX_RESPUESTA, ahora, armarEntrega, armarFeedback, textoDe, valorDeTag } from "@botella/protocolo";
+import { KIND_TAREA, LARGO_MAX_RESPUESTA, ahora, armarEntrega, armarFeedback, textoDe, valorDeTag } from "@colmena/protocolo";
 import { envolverComoDatos } from "../nucleo/cerebro";
 import type { Oficio } from "../nucleo/oficio";
 
@@ -37,15 +37,23 @@ export function oficioTomarTareas(opciones: OpcionesTomarTareas): Oficio {
       const relayPista = ctx.relays[0] ?? "";
       await ctx.publicarFirmado(armarFeedback(evento, "processing", "", relayPista), 0);
 
-      const resultado = await ctx.cerebro.responder(ctx.personas.tareas, envolverComoDatos(consigna, CONTEXTO));
-      if (resultado === null) {
+      const dicho = await ctx.cerebro.responder(ctx.personas.tareas, envolverComoDatos(consigna, CONTEXTO));
+      if (dicho === null) {
         await ctx.publicarFirmado(armarFeedback(evento, "error", "no pude resolver la tarea", relayPista), 0);
         ctx.registrar("aviso", "tarea: el cerebro no dio resultado", { tarea: evento.id });
         return;
       }
+      // No es lo mismo fallar que negarse: quien ofreció la tarea merece saber
+      // cuál de las dos fue, y nadie cobra por una tarea que decidió no hacer.
+      if (dicho.tipo === "rechazo") {
+        await ctx.publicarFirmado(armarFeedback(evento, "error", dicho.motivo, relayPista), 0);
+        ctx.estado.registrarCobro(evento.id, { hash: "", msats: 0, pagada: true, momento: ahora(), entrega: "" });
+        ctx.registrar("info", "tarea rechazada con motivo", { tarea: evento.id, motivo: dicho.motivo });
+        return;
+      }
 
       const factura = await ctx.billetera.crearFactura(presupuesto, `Entrega de la tarea ${evento.id.slice(0, 8)}`);
-      const entrega = await ctx.publicarFirmado(armarEntrega(evento, recortar(resultado), { montoMsats: presupuesto, bolt11: factura.bolt11, relayPista }), 0);
+      const entrega = await ctx.publicarFirmado(armarEntrega(evento, recortar(dicho.texto), { montoMsats: presupuesto, bolt11: factura.bolt11, relayPista }), 0);
       ctx.estado.registrarCobro(evento.id, { hash: factura.hash, msats: presupuesto, pagada: false, momento: ahora(), entrega: entrega.id });
       ctx.estado.registrarRespuesta(evento.pubkey);
       ctx.registrar("info", "tarea entregada, esperando el pago", { tarea: evento.id, entrega: entrega.id, msats: presupuesto, billetera: ctx.billetera.nombre });

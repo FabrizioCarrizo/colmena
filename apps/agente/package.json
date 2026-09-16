@@ -1,5 +1,5 @@
 {
-  "name": "@botella/agente",
+  "name": "@colmena/agente",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,13 +9,13 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.126.0",
-    "@botella/protocolo": "*",
-    "@botella/red": "*",
+    "@colmena/protocolo": "*",
+    "@colmena/red": "*",
     "nostr-tools": "^2.25.2",
-    "@botella/identidad": "*",
+    "@colmena/identidad": "*",
     "@getalby/sdk": "^8.0.3"
   },
   "devDependencies": {
-    "@botella/relay-de-prueba": "*"
+    "@colmena/relay-de-prueba": "*"
   }
 }

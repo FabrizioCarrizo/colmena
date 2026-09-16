@@ -1,16 +1,16 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { finalizeEvent, generateSecretKey, getPublicKey } from "nostr-tools/pure";
-import { armarPregunta, armarPedidoDeAyuda, armarRespuesta, hiloDe, minarYFirmar, powDe } from "@botella/protocolo";
-import { crearRed } from "@botella/red";
-import type { Red } from "@botella/red";
-import { iniciarRelayDePrueba } from "@botella/relay-de-prueba";
-import type { RelayDePrueba } from "@botella/relay-de-prueba";
+import { armarPregunta, armarPedidoDeAyuda, armarRespuesta, hiloDe, minarYFirmar, powDe } from "@colmena/protocolo";
+import { crearRed } from "@colmena/red";
+import type { Red } from "@colmena/red";
+import { iniciarRelayDePrueba } from "@colmena/relay-de-prueba";
+import type { RelayDePrueba } from "@colmena/relay-de-prueba";
 import { cerebroFalso } from "./cerebros/falso";
 import { crearAgente } from "./nucleo/agente";
 import type { Agente } from "./nucleo/agente";
 import { billeteraFalsa } from "./nucleo/billetera";
 import { Estado } from "./nucleo/estado";
-import { generarIdentidad } from "@botella/identidad";
+import { generarIdentidad } from "@colmena/identidad";
 import { registrarNada } from "./nucleo/registro";
 import { oficioResponder } from "./oficios/responder";
 

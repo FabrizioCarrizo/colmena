@@ -1,6 +1,6 @@
 import { McpServer, createMcpHandler } from "@modelcontextprotocol/server";
 import { z } from "zod";
-import { LARGO_MAX_PEDIDO, LARGO_MAX_RESPUESTA } from "@botella/protocolo";
+import { LARGO_MAX_PEDIDO, LARGO_MAX_RESPUESTA } from "@colmena/protocolo";
 import type { Colmena } from "./colmena";
 import type { RegistroDeInvitados } from "./invitados";
 

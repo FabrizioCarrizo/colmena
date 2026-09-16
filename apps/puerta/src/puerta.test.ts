@@ -4,9 +4,9 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import * as nip19 from "nostr-tools/nip19";
 import type { Event as EventoNostr } from "nostr-tools/pure";
-import { KIND_ANUNCIO_SERVICIO, leerPerfil, powDe, valorDeTag, verboDe } from "@botella/protocolo";
-import { iniciarRelayDePrueba } from "@botella/relay-de-prueba";
-import type { RelayDePrueba } from "@botella/relay-de-prueba";
+import { KIND_ANUNCIO_SERVICIO, leerPerfil, powDe, valorDeTag, verboDe } from "@colmena/protocolo";
+import { iniciarRelayDePrueba } from "@colmena/relay-de-prueba";
+import type { RelayDePrueba } from "@colmena/relay-de-prueba";
 import { iniciarPuerta } from "./servidor";
 import type { ConfigPuerta } from "./config";
 

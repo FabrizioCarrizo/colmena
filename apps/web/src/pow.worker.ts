@@ -1,4 +1,4 @@
-import { minarPow } from "@botella/protocolo";
+import { minarPow } from "@colmena/protocolo";
 import type { EventTemplate } from "nostr-tools/pure";
 
 export interface PedidoDeMinado {

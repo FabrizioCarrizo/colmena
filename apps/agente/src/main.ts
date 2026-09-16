@@ -10,7 +10,7 @@ import { billeteraFalsa } from "./nucleo/billetera";
 import type { Billetera } from "./nucleo/billetera";
 import type { Cerebro } from "./nucleo/cerebro";
 import { Estado } from "./nucleo/estado";
-import { cargarOCrearIdentidad } from "@botella/identidad";
+import { cargarOCrearIdentidad } from "@colmena/identidad";
 import type { Oficio } from "./nucleo/oficio";
 import { registrarEnConsola } from "./nucleo/registro";
 import { oficioCurar } from "./oficios/curar";
@@ -23,7 +23,7 @@ function elegirCerebro(config: Config): Cerebro {
     case "claude":
       return cerebroClaude({ modelo: config.modelo ?? undefined, esfuerzo: config.esfuerzo });
     case "local":
-      return cerebroLocal({ modelo: config.modelo ?? "llama3.2", url: config.ollamaUrl });
+      return cerebroLocal({ modelo: config.modelo ?? "qwen3:8b", url: config.ollamaUrl, razonamiento: config.razonamiento });
     case "falso":
       // FALSO_COINCIDE=si hace que el cerebro falso "encuentre" todo, para probar
       // la curaduría de punta a punta sin gastar inferencia.

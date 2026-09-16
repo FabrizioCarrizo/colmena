@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import type { Event as EventoNostr } from "nostr-tools/pure";
-import { KIND_TAREA, POW_PEDIDO, armarTarea, temasDe, textoDe, valorDeTag } from "@botella/protocolo";
+import { KIND_TAREA, POW_PEDIDO, armarTarea, temasDe, textoDe, valorDeTag } from "@colmena/protocolo";
 import { Autor } from "../componentes/Autor";
 import { cargarMisTareas, recordarTarea } from "../estado/ajustes";
 import type { Claves } from "../estado/claves";

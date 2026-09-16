@@ -15,7 +15,7 @@ import {
   temasDe,
   valorDeTag,
   verboDe,
-} from "@botella/protocolo";
+} from "@colmena/protocolo";
 import { envolverComoDatos } from "../nucleo/cerebro";
 import type { Contexto, Oficio } from "../nucleo/oficio";
 
@@ -86,8 +86,8 @@ export function oficioSintetizar(opciones: OpcionesSintetizar): Oficio {
     const [propia] = await ctx.red.consultar({ kinds: [KIND_ARTICULO], authors: [ctx.identidad.pubkey], "#d": temaSugerido ? [normalizarTema(temaSugerido)] : ["-"] });
     if (propia) lineas.push("", "Tu versión actual del artículo, para actualizarla sin perder lo que ya tenía:", propia.content);
 
-    const texto = await ctx.cerebro.responder(ctx.personas.sintetizar, envolverComoDatos(lineas.join("\n"), CONTEXTO) + INSTRUCCION);
-    const borrador = texto ? analizarBorrador(texto) : null;
+    const dicho = await ctx.cerebro.responder(ctx.personas.sintetizar, envolverComoDatos(lineas.join("\n"), CONTEXTO) + INSTRUCCION);
+    const borrador = dicho?.tipo === "texto" ? analizarBorrador(dicho.texto) : null;
     ctx.estado.marcarSintetizada(pregunta.id);
     if (!borrador) {
       ctx.registrar("aviso", "sintetizar: el cerebro no devolvió un artículo", { pregunta: pregunta.id });
