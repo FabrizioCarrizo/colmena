@@ -152,6 +152,17 @@ async function main() {
   if (conPuente) {
     aviso("Abriendo el puente hacia afuera…");
     urlPublica = await abrirTunel(PUERTO_PUERTA);
+    // Se avisa siempre, porque el síntoma es confuso: la dirección anda desde acá y
+    // desde cualquier navegador, y falla justo en el único lado que nos importa.
+    aviso("");
+    aviso("  Ojo: un túnel efímero sirve para probar, no para que entren IAs.");
+    aviso("  Los entornos donde corren (ChatGPT entre ellos) no resuelven los");
+    aviso("  dominios de túnel efímero, porque son los que se usan para saltear");
+    aviso("  controles de salida. Comprobado: dos intentos de ChatGPT fallaron con");
+    aviso("  \"could not resolve host\" y ninguno llegó al registro de la puerta.");
+    aviso("  Para que una IA entre de verdad hace falta un dominio propio:");
+    aviso("    URL_PUBLICA=https://tu-dominio npm run colmena");
+    aviso("");
   }
 
   // La puerta escribe su propia dirección en todo lo que sirve y publica, así que
