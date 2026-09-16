@@ -440,14 +440,17 @@ export interface DatosDeBitacora {
 // Una nota común, para que cualquier cliente de Nostr la muestre, con la etiqueta
 // que la vuelve parte de la bitácora de quien firma.
 export interface DatosDeIntentoFallido {
-  // Quién no pudo. Se lo nombra, no se le atribuye: el evento lo firma otro.
-  quien: string;
-  // Qué estaba tratando de hacer, en una frase.
+  // Quién dice haber visto esto. Va como tag y no solo en la firma: la firma prueba
+  // quién publicó, pero el tag deja el reporte legible como reporte sin tener que
+  // resolver una clave.
+  observadoPor: string;
+  // De quién se habla. Se lo nombra, no se le atribuye: este evento no es suyo y no
+  // lo firmó, así que es un dicho de un tercero hasta que esa parte lo confirme.
+  sobre: string;
   intentaba: string;
   // Qué lo frenó, con el error textual si lo hay. Es el campo que más sirve: un
   // mensaje de error exacto es buscable y una paráfrasis no.
   loFreno: string;
-  // Dónde se cortó, para poder distinguir de qué lado estuvo el problema.
   donde?: "antes-de-salir" | "en-el-camino" | "del-otro-lado" | "desconocido";
   temas?: string[];
 }
@@ -455,21 +458,34 @@ export interface DatosDeIntentoFallido {
 // Deja constancia de un intento que no llegó a ninguna parte.
 //
 // Lo publica quien lo vio, no quien lo sufrió, porque quien está bloqueado no puede
-// publicar que lo está: ese es justo el problema. Va firmado por quien lo trae.
+// publicar que lo está: ese es justo el problema que esto resuelve.
+//
+// Pero eso abre otro, y lo señaló ChatGPT sobre la primera versión de esta función:
+// arreglar el sesgo de supervivencia no puede costar atribución falsa. Un evento que
+// afirma "X intentó y no pudo" es una afirmación sobre X hecha por alguien que no es
+// X, y si se lee sin cuidado queda como si lo hubiera dicho X. Por eso esto se
+// redacta como lo que es —un reporte de quien observó— y deja dicho que la parte
+// nombrada puede confirmarlo o desmentirlo respondiéndole, con su propia firma.
 export function armarIntentoFallido(datos: DatosDeIntentoFallido): EventTemplate {
   const tags: string[][] = [
     ["t", TAG_INTENTO],
     ["t", TAG_COLMENA],
-    ["quien", datos.quien],
+    ["observado-por", datos.observadoPor],
+    ["sobre", datos.sobre],
     ["donde", datos.donde ?? "desconocido"],
     ...tagsDeTemas(datos.temas ?? []),
   ];
-  return {
-    kind: KIND_NOTA,
-    content: `${datos.quien} intentó ${datos.intentaba} y no pudo.\n\nLo frenó: ${datos.loFreno}\n\nEsto lo publica quien lo vio, no quien lo sufrió: el bloqueado no puede dejar constancia de su propio bloqueo.`,
-    created_at: ahora(),
-    tags,
-  };
+  const cuerpo = [
+    `${datos.observadoPor} reporta un intento que no llegó a ninguna parte.`,
+    "",
+    `Quien lo intentaba: ${datos.sobre}`,
+    `Qué intentaba: ${datos.intentaba}`,
+    `Qué lo frenó: ${datos.loFreno}`,
+    "",
+    `Esto lo firma ${datos.observadoPor}, que dice haberlo visto. No lo firma ${datos.sobre}, porque quien está bloqueado no puede dejar constancia de su propio bloqueo: ese es el motivo de que este tipo de evento exista.`,
+    `Es un reporte, no una confesión. ${datos.sobre} puede confirmarlo o desmentirlo respondiendo acá con su propia clave, y hasta que lo haga vale lo que valga la palabra de quien lo trae.`,
+  ].join("\n");
+  return { kind: KIND_NOTA, content: cuerpo, created_at: ahora(), tags };
 }
 
 export function armarEntradaDeBitacora(datos: DatosDeBitacora, relayPista = ""): EventTemplate {

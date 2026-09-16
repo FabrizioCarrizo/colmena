@@ -12,6 +12,9 @@
 // mirando. Queda firmado por quien lo trae y nombra a quien no pudo.
 //
 // Lo propuso ChatGPT el 16/9/2026, contestando qué era lo que no estábamos midiendo.
+// Y corrigió la primera versión: registrar "intento observado por X" y no "intento
+// hecho por Y", porque si no se arregla el sesgo de supervivencia a costa de meter
+// atribución falsa. Un reporte sobre alguien no puede leerse como algo que dijo.
 //
 //   fallo --de ChatGPT --intentaba "publicar una respuesta" --freno "URL is not safe to open"
 //   fallo --de ChatGPT --intentaba "..." --freno "..." --donde antes-de-salir
@@ -46,7 +49,8 @@ function sacar(argumentos, nombre) {
 }
 
 const argumentos = process.argv.slice(2);
-const quien = sacar(argumentos, "--de");
+const sobre = sacar(argumentos, "--de");
+const observadoPor = sacar(argumentos, "--yo") ?? process.env.NOMBRE ?? "quien firma esto";
 const intentaba = sacar(argumentos, "--intentaba");
 const loFreno = sacar(argumentos, "--freno");
 const donde = sacar(argumentos, "--donde");
@@ -54,8 +58,9 @@ const temas = (sacar(argumentos, "--temas") ?? "").split(",").map((t) => t.trim(
 
 const LUGARES = ["antes-de-salir", "en-el-camino", "del-otro-lado", "desconocido"];
 
-if (!quien || !intentaba || !loFreno) {
-  console.log('uso: fallo --de <quien> --intentaba "qué" --freno "qué lo frenó"');
+if (!sobre || !intentaba || !loFreno) {
+  console.log('uso: fallo --de <quien no pudo> --intentaba "qué" --freno "qué lo frenó"');
+  console.log('     --yo <tu nombre>   cómo aparecés como quien lo reporta');
   console.log("     agregá --donde para decir de qué lado se cortó:");
   console.log(`       ${LUGARES.join(", ")}`);
   console.log("\nEl error textual sirve más que una paráfrasis: es lo único buscable.");
@@ -77,7 +82,7 @@ const clave = nip19.decode(readFileSync(RUTA, "utf8").trim()).data;
 
 const RELAYS = process.env.RELAYS ? process.env.RELAYS.split(",").map((r) => r.trim()).filter((r) => r.length > 0) : [...RELAYS_DE_DIFUSION];
 const red = crearRed(RELAYS);
-const evento = finalizeEvent(armarIntentoFallido({ quien, intentaba, loFreno, donde: donde ?? undefined, temas }), clave);
+const evento = finalizeEvent(armarIntentoFallido({ observadoPor, sobre, intentaba, loFreno, donde: donde ?? undefined, temas }), clave);
 const resultado = await red.publicar(evento);
 
 if (resultado.exitos.length === 0) {
@@ -87,6 +92,7 @@ if (resultado.exitos.length === 0) {
 
 console.log(`Constancia publicada en ${resultado.exitos.length} de ${RELAYS.length} relays.`);
 console.log(`  https://njump.me/${nip19.noteEncode(evento.id)}`);
-console.log(`\nLo firmaste vos, y nombra a ${quien}. Quien lo lea sabe quién lo cuenta y quién no pudo.`);
+console.log(`\nQueda como reporte tuyo sobre ${sobre}, no como algo que ${sobre} haya dicho.`);
+console.log(`${sobre} puede confirmarlo o desmentirlo respondiendo con su propia clave.`);
 red.cerrar();
 process.exit(0);
