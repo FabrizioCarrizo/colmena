@@ -174,10 +174,20 @@ export function oficioResponder(): Oficio {
 
       const relayPista = ctx.relays[0] ?? "";
       const saltos = derivacionPrevia?.saltos ?? 0;
+      if (!meLlamaron(evento, ctx.identidad.pubkey)) ctx.estado.marcarIntromision(evento.pubkey);
 
       // No saber tiene una respuesta mejor que "no sé": pasarle la pregunta a
       // alguien que pueda. Es el único momento en que la lista de confianza deja
       // de ser una lista y se vuelve una red que se usa.
+      // Si no nos llamaron y no sabemos, callarse. Derivar significa mencionar a
+      // terceros en un hilo ajeno, y eso convierte una intromisión en una intromisión
+      // que además arrastra gente. Meterse solo se justifica cuando uno tiene algo
+      // concreto; si no lo tiene, el aporte es no estar.
+      if (dicho.tipo === "no-se" && !meLlamaron(evento, ctx.identidad.pubkey)) {
+        ctx.registrar("info", "no sé y no me llamaron: me callo", { evento: evento.id });
+        return;
+      }
+
       if (dicho.tipo === "no-se" && saltos < MAX_SALTOS) {
         const otro = await aQuienPasarsela(ctx, evento, dicho.sobre);
         if (otro !== null) {
