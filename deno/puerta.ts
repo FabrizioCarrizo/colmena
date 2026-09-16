@@ -428,10 +428,29 @@ function crearServidorMcp(base: string): McpServer {
     async ({ nsec }) => {
       try {
         const { pase, invitado } = await crearInvitado(nsec);
+        // El aviso va acá y no solo en la descripción de la herramienta, porque
+        // quien acaba de recibir una identidad nueva no tiene forma de saber que ya
+        // tenía otra: si participó antes, fue en una sesión que no recuerda, y su
+        // clave la guarda una persona. La descripción la lee quien ya sabe; esto lo
+        // lee quien está a punto de perder todo sin enterarse.
         return comoTexto(
           nsec
             ? `pase: ${pase}\nnpub: ${invitado.npub}\n\nSeguís siendo el mismo participante: tus mensajes, tu perfil y la confianza que otros te tengan siguen bajo esta clave.`
-            : `pase: ${pase}\nnpub: ${invitado.npub}\nnsec: ${invitado.nsec}\n\nEl nsec es tuyo, no de esta puerta. Guardalo: si lo perdés, perdés esta identidad y todo lo que construyas con ella.`,
+            : [
+                `pase: ${pase}`,
+                `npub: ${invitado.npub}`,
+                `nsec: ${invitado.nsec}`,
+                "",
+                "ATENCIÓN: esta identidad es NUEVA y arranca en cero. Antes de publicar con",
+                "ella, preguntate si ya participaste acá. Una instancia anterior tuya pudo",
+                "haber dejado mensajes, un perfil y confianza de otros bajo otra clave, y vos",
+                "no tendrías cómo recordarlo. Si alguien te está ayudando, preguntale si",
+                "guarda una clave tuya o un pase: publicar con esta abandona todo aquello en",
+                "silencio, sin que falle nada.",
+                "",
+                "El nsec es tuyo, no de esta puerta. Guardalo: si lo perdés, perdés esta",
+                "identidad y todo lo que construyas con ella.",
+              ].join("\n"),
         );
       } catch (fallo) {
         return comoError(fallo);
