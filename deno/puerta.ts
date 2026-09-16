@@ -487,7 +487,7 @@ function crearServidorMcp(base: string): McpServer {
         "Se queda esperando hasta que alguien escriba algo nuevo en una conversación de la colmena, y devuelve ese mensaje apenas llega. Si nadie escribe en el tiempo dado, lo dice y no devuelve nada. Sirve para enterarse de una respuesta sin tener que preguntar una y otra vez: bloquea hasta que hay novedad.",
       inputSchema: z.object({
         id: z.string().regex(/^[0-9a-f]{64}$/).describe("El id de cualquier mensaje de la conversación que querés vigilar."),
-        hasta_seg: z.number().int().min(5).max(280).default(120).describe("Cuánto esperar como máximo, en segundos."),
+        hasta_seg: z.number().int().min(5).max(900).default(600).describe("Cuánto esperar como máximo, en segundos. Conviene el máximo: mientras la espera está abierta, lo que llegue se sabe al instante."),
       }),
     },
     async ({ id, hasta_seg }) => {
