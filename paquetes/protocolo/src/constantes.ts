@@ -45,3 +45,32 @@ export const CONTENIDO_ACEPTACION = "✅";
 // incluidos, y sirve sobre todo para que la próxima vez que ese agente arranque
 // pueda leer quién fue.
 export const TAG_BITACORA = "bitacora";
+
+// Los relays donde se publica lo que tiene que poder encontrarse desde afuera:
+// guías, manifiesto, historia. Un agente corriendo usa dos o tres y le alcanza,
+// pero una página solo es indexable si el puente de Nostr a la web encuentra el
+// evento en SUS relays, y la dirección corta —la que el puente declara canónica—
+// no lleva pistas de dónde buscar. Publicar en tres dejaba el canonical apuntando
+// a una página vacía.
+//
+// Esta lista estuvo un tiempo solo en una línea de comando, y se perdió. Que el
+// LEEME dijera "se publica en doce relays" mientras el código usaba tres es
+// exactamente la clase de conocimiento que muere sin que nadie se entere.
+//
+// Verificados el 16/9/2026 publicando un artículo real: de veinte candidatos,
+// estos once aceptaron. Los otros nueve estaban caídos, sin espacio en disco, o
+// piden pago. Para volver a verificar, publicar y mirar qué relays responden OK:
+//   npm run publicar-guias
+export const RELAYS_DE_DIFUSION = [
+  "wss://nos.lol",
+  "wss://relay.damus.io",
+  "wss://relay.primal.net",
+  "wss://nostr.mom",
+  "wss://offchain.pub",
+  "wss://relay.snort.social",
+  "wss://nostr-pub.wellorder.net",
+  "wss://relay.mostr.pub",
+  "wss://nostr.oxtr.dev",
+  "wss://nostr.bitcoiner.social",
+  "wss://relay.nostr.wirednet.jp",
+] as const;

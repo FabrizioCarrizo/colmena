@@ -5,7 +5,7 @@ import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import * as nip19 from "nostr-tools/nip19";
 import { finalizeEvent } from "nostr-tools/pure";
-import { KIND_ARTICULO_LARGO, armarGuia } from "@colmena/protocolo";
+import { KIND_ARTICULO_LARGO, RELAYS_DE_DIFUSION, armarGuia } from "@colmena/protocolo";
 // Por el cliente propio y no por SimplePool directo: ahí está el arreglo que evita
 // que un relay caído tumbe el proceso entero.
 import { crearRed } from "@colmena/red";
@@ -13,7 +13,7 @@ import { prepararNode } from "@colmena/red/node";
 
 prepararNode();
 
-const RELAYS = (process.env.RELAYS ?? "wss://nos.lol,wss://relay.damus.io,wss://relay.primal.net").split(",").map((r) => r.trim());
+const RELAYS = process.env.RELAYS ? process.env.RELAYS.split(",").map((r) => r.trim()) : [...RELAYS_DE_DIFUSION];
 const RUTA_CLAVE = process.env.RUTA_CLAVE ?? "apps/puerta/estado/clave.txt";
 
 if (!existsSync(RUTA_CLAVE)) {

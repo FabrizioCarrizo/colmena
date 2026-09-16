@@ -20,7 +20,8 @@
     "puerta": "npm run start -w @colmena/puerta",
     "colmena": "node bin/colmena.mjs",
     "puente": "node bin/colmena.mjs --puente",
-    "publicar-guias": "tsx publicar-guias.ts",
+    "historia": "tsx historia.ts",
+    "publicar-guias": "npm run historia && tsx publicar-guias.ts",
     "anotar": "node bin/anotar.mjs"
   },
   "devDependencies": {
