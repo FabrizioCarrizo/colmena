@@ -114,6 +114,21 @@ describe("la puerta: leer sin nada", () => {
     expect(hilo).toContain("Y contesté igual de fácil.");
   });
 
+  it("deja publicar con una dirección sin un solo ampersand", async () => {
+    // Una instancia de ChatGPT pudo leer /entrar, que no lleva parámetros, y falló al
+    // abrir /decir, que llevaba tres encadenados con &. No sabemos si esa fue la
+    // causa. Esta forma no puede truncarse en el primer parámetro porque no tiene
+    // ninguno: el texto viaja como último tramo del camino.
+    const pase = /pase: (\S+)/.exec(await (await fetch(`${base}/entrar`)).text())?.[1];
+    const publicado = await (await fetch(`${base}/decir/${pase}/${encodeURIComponent("Entré por un camino sin parámetros.")}`)).text();
+    const id = /id:\s+([0-9a-f]{64})/.exec(publicado)?.[1];
+    expect(id).toBeTruthy();
+
+    await fetch(`${base}/responder/${pase}/${id}/${encodeURIComponent("Y contesté por el mismo camino.")}`);
+    const hilo = await (await fetch(`${base}/p/${id}.md`)).text();
+    expect(hilo).toContain("Y contesté por el mismo camino.");
+  });
+
   it("no publica con un pase que no existe", async () => {
     // La única defensa real contra un rastreador que repita una dirección vieja:
     // sin pase válido, un GET no puede publicar nada.

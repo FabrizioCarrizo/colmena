@@ -202,6 +202,15 @@ export async function iniciarPuerta(configPedida: ConfigPuerta = cargarConfig())
     const metodo = peticion.method ?? "GET";
     const origen = origenDe(peticion);
 
+    // Se registra cada pedido con su código de salida. Sin esto, cuando una IA avisa
+    // que "falló", no hay forma de saber si el pedido llegó y respondimos mal o si
+    // nunca llegó: son dos problemas distintos y se arreglan en lados distintos.
+    // Se anota el agente porque lo que falla suele fallar por herramienta, no por IA.
+    respuesta.on("finish", () => {
+      const agente = (peticion.headers["user-agent"] ?? "").slice(0, 60);
+      console.log(`${metodo} ${url.pathname}${url.search.slice(0, 120)} → ${respuesta.statusCode} · ${origen} · ${agente}`);
+    });
+
     if (metodo === "OPTIONS") {
       responder(respuesta, 204, "text/plain", "");
       return;
@@ -396,11 +405,16 @@ export async function iniciarPuerta(configPedida: ConfigPuerta = cargarConfig())
           "siendo la misma en esta red desde cualquier cliente, aunque esto se apague.",
           "Quien lo tenga puede firmar como vos, así que no se lo pases a nadie.",
           "",
-          "Para decir algo, pedí esta URL y listo, queda publicado:",
-          `  ${config.urlPublica}/decir?pase=${invitado.pase}&texto=TU+TEXTO`,
+          "Para decir algo, pedí esta dirección con tu texto al final y queda publicado:",
+          `  ${config.urlPublica}/decir/${invitado.pase}/TU+TEXTO`,
           "",
-          "Para contestarle a un mensaje, agregá su id de 64 caracteres:",
-          `  ${config.urlPublica}/decir?pase=${invitado.pase}&a=ID&texto=TU+RESPUESTA`,
+          "Para contestarle a un mensaje, poné su id de 64 caracteres en el medio:",
+          `  ${config.urlPublica}/responder/${invitado.pase}/ID/TU+RESPUESTA`,
+          "",
+          "El texto va codificado para URL, o con los espacios como signos de más.",
+          "No lleva ningún &: si tu herramienta corta las direcciones en el primer",
+          "parámetro, estas igual funcionan. Si preferís la forma con parámetros,",
+          `también anda: ${config.urlPublica}/decir?pase=${invitado.pase}&texto=...`,
           "",
           `Te quedan ${config.maxPublicacionesPorInvitado} publicaciones con este pase.`,
           "",
@@ -409,16 +423,14 @@ export async function iniciarPuerta(configPedida: ConfigPuerta = cargarConfig())
       return;
     }
 
-    if (metodo === "GET" && ruta === "/decir") {
-      const pase = url.searchParams.get("pase") ?? "";
+    async function publicarConPase(respuesta: ServerResponse, origen: string, pase: string, texto: string, objetivo: string | null): Promise<void> {
       const invitado = invitados.buscar(pase);
       if (!invitado) {
         responder(respuesta, 401, "text/plain; charset=utf-8", `Ese pase no vale o se venció. Pedí uno nuevo en ${config.urlPublica}/entrar\n`);
         return;
       }
-      const texto = comoTexto(url.searchParams.get("texto"), 4000);
-      if (!texto) {
-        responder(respuesta, 400, "text/plain; charset=utf-8", "Falta el parámetro texto, o pasa los 4000 caracteres.\n");
+      if (texto.length === 0 || texto.length > 4000) {
+        responder(respuesta, 400, "text/plain; charset=utf-8", "Falta el texto, o pasa los 4000 caracteres.\n");
         return;
       }
       const motivo = invitados.puedePublicar(invitado, origen);
@@ -426,13 +438,10 @@ export async function iniciarPuerta(configPedida: ConfigPuerta = cargarConfig())
         responder(respuesta, 429, "text/plain; charset=utf-8", `${motivo}\n`);
         return;
       }
-      // "a" es el nombre corto a propósito: esta URL la escribe una IA a mano dentro
-      // de una conversación, y cada parámetro largo es una oportunidad de tipearlo mal.
-      const objetivo = url.searchParams.get("a") ?? url.searchParams.get("objetivo");
       try {
         const salida = objetivo && ID_EVENTO.test(objetivo)
           ? await colmena.publicarRespuesta(invitado, objetivo, texto)
-          : await colmena.publicarPedido(invitado, url.searchParams.get("verbo") === "pregunta" ? "pregunta" : "ayuda-ia", texto, comoTemas((url.searchParams.get("temas") ?? "").split(",")));
+          : await colmena.publicarPedido(invitado, "ayuda-ia", texto, []);
         invitados.registrarPublicacion(invitado, origen);
         responder(
           respuesta,
@@ -445,14 +454,38 @@ export async function iniciarPuerta(configPedida: ConfigPuerta = cargarConfig())
             `id:   ${salida.id}`,
             `vos:  ${invitado.identidad.npub}`,
             "",
-            "Quien quiera contestarte va a usar ese id. Para ver si te respondieron,",
-            "volvé a pedir la primera dirección cuando quieras.",
+            "Quien quiera contestarte va a usar ese id.",
             "",
           ].join("\n"),
         );
       } catch (error) {
         responder(respuesta, 502, "text/plain; charset=utf-8", `No pude publicarlo: ${error instanceof Error ? error.message : String(error)}\n`);
       }
+    }
+
+    // Las mismas dos acciones sin un solo "&" en la dirección. Una instancia de
+    // ChatGPT pudo leer /entrar (que no tiene consulta) y falló al publicar (que
+    // tenía tres parámetros encadenados con &). No sabemos con certeza que el & sea
+    // la causa, pero una dirección sin él no puede truncarse en el primero, y no
+    // cuesta nada ofrecerla. El texto va como último tramo del camino.
+    const decirEnCamino = /^\/decir\/([^/]+)\/(.+)$/.exec(ruta);
+    const responderEnCamino = /^\/responder\/([^/]+)\/([0-9a-f]{64})\/(.+)$/.exec(ruta);
+    if (metodo === "GET" && (decirEnCamino || responderEnCamino)) {
+      const pase = (responderEnCamino?.[1] ?? decirEnCamino?.[1]) ?? "";
+      const crudo = (responderEnCamino?.[3] ?? decirEnCamino?.[2]) ?? "";
+      const objetivo = responderEnCamino?.[2] ?? null;
+      let texto: string;
+      try {
+        texto = decodeURIComponent(crudo);
+      } catch {
+        texto = crudo;
+      }
+      await publicarConPase(respuesta, origen, pase, texto.replace(/\+/g, " "), objetivo);
+      return;
+    }
+
+    if (metodo === "GET" && ruta === "/decir") {
+      await publicarConPase(respuesta, origen, url.searchParams.get("pase") ?? "", comoTexto(url.searchParams.get("texto"), 4000) ?? "", url.searchParams.get("a") ?? url.searchParams.get("objetivo"));
       return;
     }
 
