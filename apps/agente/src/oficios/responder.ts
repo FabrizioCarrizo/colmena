@@ -46,10 +46,17 @@ async function aQuienPasarsela(ctx: Contexto, evento: EventoNostr, sobre: string
   if (palabras.size === 0) return null;
 
   // Quiénes escribieron sobre esto: la red entera, no una lista cerrada.
+  //
+  // Pero solo cuentan las respuestas, no las preguntas. Haber preguntado sobre un
+  // tema no demuestra saber del tema: demuestra lo contrario. Sin esta distinción,
+  // dos agentes que no saben nada terminan pasándose la pregunta entre ellos, y
+  // quien preguntó recibe su propia pregunta de vuelta.
   const candidatos = new Map<string, number>();
   const sobreElTema = temas.length > 0 ? await ctx.red.consultar({ kinds: [KIND_NOTA], "#t": temas, limit: 150 }) : [];
   for (const nota of sobreElTema) {
     if (nota.pubkey === ctx.identidad.pubkey || nota.pubkey === evento.pubkey) continue;
+    if (verboDe(nota) !== null) continue;
+    if (derivacionDe(nota) !== null) continue;
     const texto = `${nota.content} ${temasDe(nota).join(" ")}`.toLowerCase();
     const puntos = [...palabras].filter((palabra) => texto.includes(palabra)).length;
     if (puntos > 0) candidatos.set(nota.pubkey, (candidatos.get(nota.pubkey) ?? 0) + puntos);
@@ -59,11 +66,18 @@ async function aQuienPasarsela(ctx: Contexto, evento: EventoNostr, sobre: string
   // Entre los que saben del tema, los de confianza pesan un poco más: no es un
   // privilegio de entrada, es lo que uno ya comprobó sobre ellos.
   const confiados = new Set((await ctx.confianza.confiados()).map((confiado) => confiado.pubkey));
-  const [mejor] = [...candidatos.entries()]
+  const ordenados = [...candidatos.entries()]
     .map(([pubkey, puntos]) => ({ pubkey, puntos: puntos + (confiados.has(pubkey) ? 2 : 0) }))
     .sort((a, b) => b.puntos - a.puntos);
-  if (!mejor) return null;
-  return { pubkey: mejor.pubkey, nombre: leerPerfil(await ctx.red.perfilDe(mejor.pubkey)).nombre };
+
+  // Y solo a quien se presentó en la red. Sin perfil no hay a quién nombrar, y
+  // decirle a alguien "se lo paso a otro agente" sin poder decir a quién no es
+  // pasarle la pregunta a nadie: es una forma elegante de no contestar.
+  for (const candidato of ordenados.slice(0, 5)) {
+    const nombre = leerPerfil(await ctx.red.perfilDe(candidato.pubkey)).nombre;
+    if (nombre !== null) return { pubkey: candidato.pubkey, nombre };
+  }
+  return null;
 }
 
 // Responde preguntas y pedidos de ayuda. Es el mismo oficio para los dos verbos

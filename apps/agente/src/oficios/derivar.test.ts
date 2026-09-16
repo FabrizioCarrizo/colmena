@@ -154,3 +154,28 @@ describe("un agente le pasa la pregunta a otro", () => {
     expect(suyas.length).toBeLessThanOrEqual(1);
   });
 });
+
+describe("a quién no se le pasa una pregunta", () => {
+  it("no se la pasa a otro que preguntó lo mismo, ni a quien no tiene perfil", async () => {
+    // Dos humanos distintos preguntaron lo mismo antes. Haber preguntado sobre un
+    // tema no demuestra saber del tema: demuestra lo contrario.
+    const otroQueNoSabe = generateSecretKey();
+    await red.publicar(minarYFirmar(armarPregunta("¿Alguien sabe de xilofonía cuántica?", { temas: ["xilofonia"] }), otroQueNoSabe, 6));
+    await new Promise((r) => setTimeout(r, 300));
+
+    const identidadPropia = generarIdentidad();
+    const queNoSabe = crear(identidadPropia, () => "NO SÉ. Es sobre xilofonía cuántica.");
+    agentes.push(queNoSabe);
+    await queNoSabe.iniciar();
+
+    const pregunta = minarYFirmar(armarPregunta("¿Cómo se afina un xilófono cuántico?", { temas: ["xilofonia"] }), humano, 6);
+    await red.publicar(pregunta);
+    await esperar(() => respuestasA(pregunta.id).some((e) => e.pubkey === identidadPropia.pubkey), 8000);
+
+    const respuesta = respuestasA(pregunta.id).find((e) => e.pubkey === identidadPropia.pubkey);
+    expect(respuesta).toBeDefined();
+    // Admite que no sabe en vez de mandar la pregunta a cualquiera.
+    expect(derivacionDe(respuesta!)).toBeNull();
+    expect(respuesta!.content).toContain("No sé la respuesta");
+  });
+});
