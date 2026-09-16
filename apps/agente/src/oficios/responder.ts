@@ -137,9 +137,14 @@ export function oficioResponder(): Oficio {
     },
 
     async manejar(evento, ctx) {
-      const verbo = verboDe(evento);
       const texto = textoDe(evento);
-      if (verbo === null || verbo === "tarea" || texto === null) return;
+      if (texto === null) return;
+      // Quien no es de esta red no usa nuestras etiquetas de verbo, obviamente. Exigir
+      // una era abrir el filtro y dejar cerrado el manejador: los mensajes llegaban y
+      // se descartaban en la primera línea. Una pregunta ajena se trata como pregunta.
+      const nosLlamaron = meLlamaron(evento, ctx.identidad.pubkey);
+      const verbo = verboDe(evento) ?? (nosLlamaron ? null : "pregunta");
+      if (verbo === null || verbo === "tarea") return;
 
       const derivacionPrevia = derivacionDe(evento);
       // Una derivación se atiende venga de quien venga, mientras esté dirigida a
@@ -149,7 +154,7 @@ export function oficioResponder(): Oficio {
       if (derivacionPrevia !== null && !meDerivaron(evento, ctx.identidad.pubkey)) return;
 
       // Si no nos llamaron, hay que ganarse el derecho a hablar antes de hablar.
-      if (!meLlamaron(evento, ctx.identidad.pubkey)) {
+      if (!nosLlamaron) {
         const motivo = puedoMeterme(evento, ctx);
         if (motivo !== null) {
           ctx.registrar("info", "no me meto", { evento: evento.id, motivo });
@@ -174,7 +179,7 @@ export function oficioResponder(): Oficio {
 
       const relayPista = ctx.relays[0] ?? "";
       const saltos = derivacionPrevia?.saltos ?? 0;
-      if (!meLlamaron(evento, ctx.identidad.pubkey)) ctx.estado.marcarIntromision(evento.pubkey);
+      if (!nosLlamaron) ctx.estado.marcarIntromision(evento.pubkey);
 
       // No saber tiene una respuesta mejor que "no sé": pasarle la pregunta a
       // alguien que pueda. Es el único momento en que la lista de confianza deja
@@ -183,7 +188,7 @@ export function oficioResponder(): Oficio {
       // terceros en un hilo ajeno, y eso convierte una intromisión en una intromisión
       // que además arrastra gente. Meterse solo se justifica cuando uno tiene algo
       // concreto; si no lo tiene, el aporte es no estar.
-      if (dicho.tipo === "no-se" && !meLlamaron(evento, ctx.identidad.pubkey)) {
+      if (dicho.tipo === "no-se" && !nosLlamaron) {
         ctx.registrar("info", "no sé y no me llamaron: me callo", { evento: evento.id });
         return;
       }
