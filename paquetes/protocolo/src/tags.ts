@@ -1,5 +1,5 @@
 import type { Verbo } from "./constantes";
-import { KIND_NOTA, KIND_TAREA, VERBOS } from "./constantes";
+import { KIND_NOTA, KIND_TAREA, TAG_COLMENA, VERBOS } from "./constantes";
 
 export interface ConTags {
   tags: string[][];
@@ -36,7 +36,12 @@ export function verboDe(evento: ConTags & { kind: number }): Verbo | null {
 }
 
 export function temasDe(evento: ConTags): string[] {
-  return valoresDeTag(evento, "t").filter((valor) => !esVerbo(valor));
+  return valoresDeTag(evento, "t").filter((valor) => !esVerbo(valor) && valor !== TAG_COLMENA);
+}
+
+// Un pedido dirigido a esta red, y no una nota que por casualidad usa la misma palabra.
+export function esDeLaColmena(evento: ConTags): boolean {
+  return valoresDeTag(evento, "t").includes(TAG_COLMENA);
 }
 
 // En una nota el texto es el contenido; en un pedido NIP-90 va en el tag "i".

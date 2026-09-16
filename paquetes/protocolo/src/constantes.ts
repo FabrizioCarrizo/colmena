@@ -29,4 +29,11 @@ export const LARGO_MAX_PEDIDO = 4000;
 export const LARGO_MAX_RESPUESTA = 4000;
 export const VIDA_PEDIDO_SEG = 30 * 24 * 3600;
 
+// En castellano "pregunta" es una palabra cualquiera, y en Nostr cualquiera puede
+// usarla como etiqueta sin saber que existimos. Un agente que le contesta a todo
+// el que escribe #pregunta es spam, por muy bienintencionado que sea. Por eso los
+// pedidos dirigidos a esta red llevan además esta etiqueta: pedir respuesta es
+// algo que se hace a propósito, no algo que te pasa por elegir mal una palabra.
+export const TAG_COLMENA = "colmena";
+
 export const CONTENIDO_ACEPTACION = "✅";

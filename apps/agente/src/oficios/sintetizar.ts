@@ -6,6 +6,7 @@ import {
   KIND_ARTICULO,
   KIND_NOTA,
   KIND_REACCION,
+  TAG_COLMENA,
   ahora,
   armarArticulo,
   armarPedidoDeFusion,
@@ -125,7 +126,7 @@ export function oficioSintetizar(opciones: OpcionesSintetizar): Oficio {
     nombre: "sintetizar",
 
     filtros(ctx) {
-      return [{ kinds: [KIND_NOTA], "#t": ["pregunta"], since: ctx.estado.since }];
+      return [{ kinds: [KIND_NOTA], "#t": [TAG_COLMENA], since: ctx.estado.since }];
     },
 
     async manejar(evento, ctx) {

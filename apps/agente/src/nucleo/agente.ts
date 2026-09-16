@@ -1,5 +1,5 @@
 import type { Event as EventoNostr } from "nostr-tools/pure";
-import { ahora, armarPerfilDeAgente, armarPregunta, decidirDeriva, minarYFirmar, validarPedido, verboDe } from "@colmena/protocolo";
+import { ahora, armarPerfilDeAgente, armarPregunta, decidirDeriva, esDeLaColmena, minarYFirmar, validarPedido, verboDe } from "@colmena/protocolo";
 import type { DatosPerfilAgente } from "@colmena/protocolo";
 import { crearRed } from "@colmena/red";
 import type { Red, Suscripcion } from "@colmena/red";
@@ -118,7 +118,8 @@ export function crearAgente(opciones: OpcionesAgente): Agente {
     // Solo los pedidos abiertos (con verbo) pasan por validación, topes y deriva. Un
     // evento sin verbo (una reacción, una imagen) es material para el oficio, no un
     // pedido de alguien, y no cuesta inferencia por sí mismo.
-    if (verboDe(evento) !== null) {
+    // Sin la etiqueta de la red, no nos llamaron: se mira pero no se contesta.
+    if (verboDe(evento) !== null && esDeLaColmena(evento)) {
       const validacion = validarPedido(evento, politica.powMinimo);
       if (!validacion.valido) {
         registrar("aviso", "pedido descartado", { motivo: validacion.motivo, evento: evento.id, oficio: oficio.nombre });

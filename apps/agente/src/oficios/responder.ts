@@ -1,4 +1,4 @@
-import { KIND_NOTA, LARGO_MAX_RESPUESTA, armarRechazo, armarRespuesta, hiloDe, textoDe, verboDe } from "@colmena/protocolo";
+import { KIND_NOTA, LARGO_MAX_RESPUESTA, TAG_COLMENA, armarRechazo, armarRespuesta, hiloDe, textoDe, verboDe } from "@colmena/protocolo";
 import { envolverComoDatos } from "../nucleo/cerebro";
 import type { Oficio } from "../nucleo/oficio";
 
@@ -16,7 +16,7 @@ export function oficioResponder(): Oficio {
     nombre: "responder",
 
     filtros(ctx) {
-      return [{ kinds: [KIND_NOTA], "#t": ["pregunta", "ayuda-ia"], since: ctx.estado.since }];
+      return [{ kinds: [KIND_NOTA], "#t": [TAG_COLMENA], since: ctx.estado.since }];
     },
 
     async manejar(evento, ctx) {

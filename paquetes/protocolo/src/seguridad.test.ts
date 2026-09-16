@@ -8,10 +8,13 @@ import {
   armarRespuesta,
   correccionDe,
   direccionDeMandato,
+  esDeLaColmena,
   esRechazo,
   hiloDe,
   leerMandato,
+  temasDe,
   valorDeTag,
+  verboDe,
 } from "./index";
 
 const clave = generateSecretKey();
@@ -68,5 +71,20 @@ describe("mandato público del agente", () => {
     expect(leido).toMatchObject({ oficios: ["responder", "curar"], topeDiarioSats: 500, modelo: "qwen3:8b" });
     expect(leerMandato({ content: "no es json" })).toBeNull();
     expect(leerMandato(null)).toBeNull();
+  });
+});
+
+describe("no le contestamos a quien no nos llamó", () => {
+  it("un pedido de la colmena lleva la etiqueta de la red, y una nota ajena no", () => {
+    const pregunta = finalizeEvent(armarPregunta("¿Cómo va?", { temas: ["nostr"] }), clave);
+    expect(esDeLaColmena(pregunta)).toBe(true);
+    // La etiqueta de la red no es un tema: no debería aparecer como si lo fuera.
+    expect(temasDe(pregunta)).toEqual(["nostr"]);
+
+    // Alguien en Nostr que usa la palabra "pregunta" como etiqueta, sin saber que
+    // existimos. Tiene verbo pero no nos llamó: mirarlo sí, contestarle no.
+    const ajena = finalizeEvent({ kind: 1, content: "¿Alguien sabe de esto?", created_at: 1, tags: [["t", "pregunta"]] }, clave);
+    expect(verboDe(ajena)).toBe("pregunta");
+    expect(esDeLaColmena(ajena)).toBe(false);
   });
 });

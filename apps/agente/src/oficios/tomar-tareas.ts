@@ -1,4 +1,4 @@
-import { KIND_TAREA, LARGO_MAX_RESPUESTA, ahora, armarEntrega, armarFeedback, textoDe, valorDeTag } from "@colmena/protocolo";
+import { KIND_TAREA, LARGO_MAX_RESPUESTA, TAG_COLMENA, ahora, armarEntrega, armarFeedback, textoDe, valorDeTag } from "@colmena/protocolo";
 import { envolverComoDatos } from "../nucleo/cerebro";
 import type { Oficio } from "../nucleo/oficio";
 
@@ -23,7 +23,7 @@ export function oficioTomarTareas(opciones: OpcionesTomarTareas): Oficio {
     nombre: "tomar-tareas",
 
     filtros(ctx) {
-      return [{ kinds: [KIND_TAREA], "#t": ["tarea"], since: ctx.estado.since }];
+      return [{ kinds: [KIND_TAREA], "#t": [TAG_COLMENA], since: ctx.estado.since }];
     },
 
     async manejar(evento, ctx) {

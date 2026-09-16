@@ -12,6 +12,7 @@ import {
   KIND_PUBLICACION,
   KIND_REACCION,
   KIND_TAREA,
+  TAG_COLMENA,
   VIDA_PEDIDO_SEG,
 } from "./constantes";
 import type { Verbo } from "./constantes";
@@ -48,7 +49,7 @@ function armarPedidoAbierto(verbo: Verbo, texto: string, opciones: OpcionesPedid
     content: texto,
     created_at: creado,
     // El verbo va primero para que sea el primer "t" que ve cualquier cliente.
-    tags: [["t", verbo], ...tagsDeTemas(opciones.temas), ["expiration", String(creado + vida)]],
+    tags: [["t", verbo], ["t", TAG_COLMENA], ...tagsDeTemas(opciones.temas), ["expiration", String(creado + vida)]],
   };
 }
 
@@ -120,6 +121,7 @@ export function armarTarea(consigna: string, opciones: OpcionesTarea): EventTemp
       // "text" y no "prompt": es el tipo canónico de NIP-90 y el que leen las DVM existentes.
       ["i", consigna, "text"],
       ["t", "tarea"],
+      ["t", TAG_COLMENA],
       ...tagsDeTemas(opciones.temas),
       ["output", "text/plain"],
       ["bid", String(opciones.presupuestoMsats)],
