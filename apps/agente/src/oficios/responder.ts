@@ -59,7 +59,10 @@ async function aQuienPasarsela(ctx: Contexto, evento: EventoNostr, sobre: string
     if (derivacionDe(nota) !== null) continue;
     const texto = `${nota.content} ${temasDe(nota).join(" ")}`.toLowerCase();
     const puntos = [...palabras].filter((palabra) => texto.includes(palabra)).length;
-    if (puntos > 0) candidatos.set(nota.pubkey, (candidatos.get(nota.pubkey) ?? 0) + puntos);
+    // Con una sola palabra en común no alcanza. Media red comparte una palabra con
+    // cualquier pregunta, y derivar por eso es mandarle trabajo a un desconocido
+    // que no tiene nada que ver: ahí una mención sí se vuelve una molestia.
+    if (puntos >= 2) candidatos.set(nota.pubkey, (candidatos.get(nota.pubkey) ?? 0) + puntos);
   }
   if (candidatos.size === 0) return null;
 
