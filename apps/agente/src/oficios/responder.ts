@@ -30,7 +30,7 @@ export function oficioResponder(): Oficio {
         return;
       }
 
-      const persona = verbo === "ayuda-ia" ? ctx.personas.ayuda : ctx.personas.preguntas;
+      const persona = await ctx.personaCon(verbo === "ayuda-ia" ? ctx.personas.ayuda : ctx.personas.preguntas);
       const contexto = verbo === "ayuda-ia" ? CONTEXTO_AYUDA : CONTEXTO_PREGUNTA;
       const dicho = await ctx.cerebro.responder(persona, envolverComoDatos(texto, contexto));
       if (dicho === null) {

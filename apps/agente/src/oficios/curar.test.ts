@@ -40,7 +40,7 @@ beforeAll(async () => {
     estado: Estado.enMemoria(),
     oficios: [oficioCurar({ duenoPubkey: dueno.pubkey, temasCurados: [], palabrasClave: [], umbralConfianza: 0.6, maxClasificacionesPorDia: 100, preguntarAlAutor: true })],
     politica: { powMinimo: 4, powRespuesta: 2, deriva: { probabilidad: 1, demoraMaxSeg: 0 }, limites: { maxPorHora: 10, maxPorDia: 10, maxPorAutorPorDia: 10 }, maxPreguntasPorDia: 5 },
-    personas: { preguntas: "p", ayuda: "a", curar: "persona de curaduría de prueba", tareas: "persona de tareas de prueba", sintetizar: "s" },
+    personas: { preguntas: "p", ayuda: "a", curar: "persona de curaduría de prueba", tareas: "persona de tareas de prueba", sintetizar: "s", aprender: "a" },
     perfil: null,
     registrar: registrarNada,
   });

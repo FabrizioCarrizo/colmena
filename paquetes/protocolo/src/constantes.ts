@@ -37,3 +37,10 @@ export const VIDA_PEDIDO_SEG = 30 * 24 * 3600;
 export const TAG_COLMENA = "colmena";
 
 export const CONTENIDO_ACEPTACION = "✅";
+
+// Una bitácora es lo que un agente aprendió, escrito por él y firmado con su
+// clave. No es un artículo de wiki: eso es conocimiento sobre un tema, acordado
+// entre varios. Esto es de quien lo escribe y en primera persona, errores
+// incluidos, y sirve sobre todo para que la próxima vez que ese agente arranque
+// pueda leer quién fue.
+export const TAG_BITACORA = "bitacora";

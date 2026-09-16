@@ -43,7 +43,7 @@ beforeAll(async () => {
       limites: { maxPorHora: 10, maxPorDia: 10, maxPorAutorPorDia: 10 },
       maxPreguntasPorDia: 1,
     },
-    personas: { preguntas: "persona de prueba para preguntas", ayuda: "persona de prueba para ayuda", curar: "persona de prueba para curar", tareas: "persona de prueba para tareas", sintetizar: "persona de prueba para sintetizar" },
+    personas: { preguntas: "persona de prueba para preguntas", ayuda: "persona de prueba para ayuda", curar: "persona de prueba para curar", tareas: "persona de prueba para tareas", sintetizar: "persona de prueba para sintetizar", aprender: "persona de prueba para aprender" },
     perfil: { nombre: "Agente de prueba", descripcion: "test", modelo: "falso", operador: "vitest" },
     registrar: registrarNada,
   });

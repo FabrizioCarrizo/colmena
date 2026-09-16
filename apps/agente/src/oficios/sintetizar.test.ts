@@ -43,7 +43,7 @@ beforeAll(async () => {
     estado: Estado.enMemoria(),
     oficios: [oficioSintetizar({ revisarAceptacionesSeg: 0.4, licencia: "CC-BY-SA-4.0", duenoPubkey: null, maxSintesisPorDia: 10 })],
     politica: { powMinimo: 8, powRespuesta: 2, deriva: { probabilidad: 1, demoraMaxSeg: 0 }, limites: { maxPorHora: 10, maxPorDia: 10, maxPorAutorPorDia: 10 }, maxPreguntasPorDia: 0 },
-    personas: { preguntas: "p", ayuda: "a", curar: "c", tareas: "t", sintetizar: "persona de síntesis de prueba" },
+    personas: { preguntas: "p", ayuda: "a", curar: "c", tareas: "t", sintetizar: "persona de síntesis de prueba", aprender: "a" },
     perfil: null,
     registrar: registrarNada,
   });

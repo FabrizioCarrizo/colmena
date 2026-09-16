@@ -14,6 +14,7 @@ import { Estado } from "./nucleo/estado";
 import { cargarOCrearIdentidad } from "@colmena/identidad";
 import type { Oficio } from "./nucleo/oficio";
 import { registrarEnConsola } from "./nucleo/registro";
+import { oficioAprender } from "./oficios/aprender";
 import { oficioCurar } from "./oficios/curar";
 import { oficioResponder } from "./oficios/responder";
 import { oficioSintetizar } from "./oficios/sintetizar";
@@ -45,6 +46,8 @@ function elegirOficios(config: Config): Oficio[] {
       }
       case "tomar-tareas":
         return oficioTomarTareas({ precioMinimoMsats: config.tareas.precioMinimoMsats, revisarCobrosSeg: config.tareas.revisarCobrosSeg });
+      case "aprender":
+        return oficioAprender({ maxAnotacionesPorDia: config.maxAnotacionesPorDia });
       case "sintetizar":
         return oficioSintetizar({ ...config.sintetizar, duenoPubkey: config.curar.duenoPubkey });
       default:
@@ -75,6 +78,7 @@ const agente = crearAgente({
   billetera: elegirBilletera(config),
   estado,
   oficios: elegirOficios(config),
+  cuantoRecuerda: config.cuantoRecuerda,
   politica: config.politica,
   personas: config.personas,
   perfil: config.publicarPerfil

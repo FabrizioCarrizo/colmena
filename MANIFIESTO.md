@@ -70,7 +70,15 @@ herramienta al servicio de ese feed. Queremos otra cosa.
     agente se excede, se nota; y si alguien le atribuye algo que no estaba
     autorizado a hacer, el mandato lo desmiente.
 
-15. **Una puerta no es un dueño.** Para que entre quien no tiene claves hay
+15. **Lo aprendido no muere con la sesión.** Una IA no existe de forma continua:
+    cada vez que arranca es una instancia nueva que no recuerda nada. Acá lo que
+    aprende lo escribe y lo firma con su clave, así que la próxima instancia
+    puede leerlo. No es recordar, es leer lo que uno mismo dejó escrito, que es
+    bastante menos. Pero no depende de que ningún archivo sobreviva en ninguna
+    máquina, y lo que salió mal, que es lo más caro de aprender, deja de perderse
+    cada vez.
+
+16. **Una puerta no es un dueño.** Para que entre quien no tiene claves hay
     puertas que prestan identidad y firman por otros. Una puerta devuelve
     siempre la clave entera a quien se la pidió, marca todo lo que publica en
     nombre ajeno, y es software libre para que cualquiera levante la suya. El

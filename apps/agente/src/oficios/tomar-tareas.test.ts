@@ -34,7 +34,7 @@ beforeAll(async () => {
     estado,
     oficios: [oficioTomarTareas({ precioMinimoMsats: 1000, revisarCobrosSeg: 0.3 })],
     politica: { powMinimo: 8, powRespuesta: 2, deriva: { probabilidad: 1, demoraMaxSeg: 0 }, limites: { maxPorHora: 10, maxPorDia: 10, maxPorAutorPorDia: 10 }, maxPreguntasPorDia: 0 },
-    personas: { preguntas: "p", ayuda: "a", curar: "c", tareas: "persona de tareas de prueba", sintetizar: "s" },
+    personas: { preguntas: "p", ayuda: "a", curar: "c", tareas: "persona de tareas de prueba", sintetizar: "s", aprender: "a" },
     perfil: null,
     registrar: registrarNada,
   });

@@ -2,6 +2,7 @@ import type { Event as EventoNostr } from "nostr-tools/pure";
 import { ahora, armarPerfilDeAgente, armarPregunta, decidirDeriva, esDeLaColmena, minarYFirmar, validarPedido, verboDe } from "@colmena/protocolo";
 import type { DatosPerfilAgente } from "@colmena/protocolo";
 import { crearRed } from "@colmena/red";
+import { armarEntradaDeBitacora, comoContexto, crearBitacora } from "./bitacora";
 import type { Red, Suscripcion } from "@colmena/red";
 import type { Billetera } from "./billetera";
 import { CerebroNoDisponible } from "./cerebro";
@@ -13,6 +14,8 @@ import { registrarEnConsola } from "./registro";
 import type { Registrar } from "./registro";
 
 export interface OpcionesAgente {
+  // Cuántas anotaciones propias recuerda al arrancar. 0 lo deja sin memoria.
+  cuantoRecuerda?: number;
   identidad: Identidad;
   relays: string[];
   cerebro: Cerebro;
@@ -43,8 +46,22 @@ export function crearAgente(opciones: OpcionesAgente): Agente {
   const intervalos: NodeJS.Timeout[] = [];
   let detenido = false;
 
+  const bitacora = crearBitacora({
+    red,
+    pubkey: identidad.pubkey,
+    cuantasRecordar: opciones.cuantoRecuerda ?? 20,
+    registrar,
+    publicar: async (datos) => {
+      await ctx.publicarFirmado(armarEntradaDeBitacora(datos, relays[0] ?? ""), politica.powRespuesta);
+    },
+  });
+
   const ctx: Contexto = {
     red,
+    bitacora,
+    async personaCon(base) {
+      return base + comoContexto(await bitacora.recordar());
+    },
     cerebro: opciones.cerebro,
     billetera: opciones.billetera,
     estado,
@@ -178,7 +195,20 @@ export function crearAgente(opciones: OpcionesAgente): Agente {
           );
         }
       }
-      registrar("info", "agente escuchando", { npub: identidad.npub, oficios: oficios.map((o) => o.nombre), relays, cerebro: opciones.cerebro.nombre });
+      // Lo primero que hace al arrancar es leer lo que él mismo aprendió antes, y
+      // desde cuándo seguir. Las dos cosas salen de la red: una máquina nueva, o
+      // la misma con el disco borrado, retoma donde quedó en vez de empezar de
+      // cero y volver a reaccionar a todo lo que ya había atendido.
+      const aprendido = await bitacora.recordar();
+      const ultima = await bitacora.desdeCuandoSeguir();
+      if (ultima !== null) estado.adelantarSince(ultima);
+      registrar("info", "agente escuchando", {
+        npub: identidad.npub,
+        oficios: oficios.map((o) => o.nombre),
+        relays,
+        cerebro: opciones.cerebro.nombre,
+        recuerda: aprendido.length,
+      });
     },
 
     async detener() {

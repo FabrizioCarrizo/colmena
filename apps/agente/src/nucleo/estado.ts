@@ -27,6 +27,7 @@ interface DatosEstado {
   preguntasVistas: Record<string, { pubkey: string; momento: number }>;
   sintetizadas: Record<string, number>;
   sintesis: number[];
+  anotaciones: number[];
   since: number;
 }
 
@@ -51,6 +52,7 @@ function estadoInicial(): DatosEstado {
     preguntasVistas: {},
     sintetizadas: {},
     sintesis: [],
+    anotaciones: [],
     // Al arrancar por primera vez se mira solo la última hora: lo anterior ya lo
     // atendió otro, o venció, y procesarlo costaría inferencia sin sentido.
     since: ahoraSeg() - 3600,
@@ -90,6 +92,11 @@ export class Estado {
 
   get since(): number {
     return this.datos.since;
+  }
+
+  // Nunca retrocede: si la red dice que ya se llegó más lejos, se le hace caso.
+  adelantarSince(momento: number): void {
+    this.datos.since = Math.max(this.datos.since, momento);
   }
 
   yaAtendido(clave: string): boolean {
@@ -191,6 +198,14 @@ export class Estado {
     return this.datos.sintesis.filter((t) => t >= momento).length;
   }
 
+  registrarAnotacion(momento = ahoraSeg()): void {
+    this.datos.anotaciones.push(momento);
+  }
+
+  anotacionesDesde(momento: number): number {
+    return this.datos.anotaciones.filter((t) => t >= momento).length;
+  }
+
   podar(momento = ahoraSeg()): void {
     const limite = momento - RETENCION_SEG;
     for (const [clave, t] of Object.entries(this.datos.atendidos)) if (t < limite) delete this.datos.atendidos[clave];
@@ -205,6 +220,7 @@ export class Estado {
     for (const [clave, datos] of Object.entries(this.datos.preguntasVistas)) if (datos.momento < limite) delete this.datos.preguntasVistas[clave];
     for (const [clave, t] of Object.entries(this.datos.sintetizadas)) if (t < limite) delete this.datos.sintetizadas[clave];
     this.datos.sintesis = this.datos.sintesis.filter((t) => t >= limite);
+    this.datos.anotaciones = this.datos.anotaciones.filter((t) => t >= limite);
     for (const [autor, lista] of Object.entries(this.datos.respuestasPorAutor)) {
       const vigentes = lista.filter((t) => t >= limite);
       if (vigentes.length === 0) delete this.datos.respuestasPorAutor[autor];

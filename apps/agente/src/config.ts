@@ -38,6 +38,8 @@ export interface Config {
   falsoCoincide: boolean;
   tareas: { precioMinimoMsats: number; revisarCobrosSeg: number; nwcUrl: string | null };
   sintetizar: { revisarAceptacionesSeg: number; licencia: string; maxSintesisPorDia: number };
+  cuantoRecuerda: number;
+  maxAnotacionesPorDia: number;
 }
 
 const ESFUERZOS: readonly Esfuerzo[] = ["low", "medium", "high", "xhigh", "max"];
@@ -127,6 +129,7 @@ export function cargarConfig(entorno: NodeJS.ProcessEnv = process.env): Config {
       curar: reemplazos(leerArchivo(texto(entorno, "PERSONA_CURAR", "personas/curar.md"), true) ?? ""),
       tareas: reemplazos(leerArchivo(texto(entorno, "PERSONA_TAREAS", "personas/tareas.md"), true) ?? ""),
       sintetizar: reemplazos(leerArchivo(texto(entorno, "PERSONA_SINTETIZAR", "personas/sintetizar.md"), true) ?? ""),
+      aprender: reemplazos(leerArchivo(texto(entorno, "PERSONA_APRENDER", "personas/aprender.md"), true) ?? ""),
     },
     politica: {
       powMinimo: numero(entorno, "POW_MINIMO", POW_PEDIDO),
@@ -143,6 +146,8 @@ export function cargarConfig(entorno: NodeJS.ProcessEnv = process.env): Config {
       maxPreguntasPorDia: numero(entorno, "MAX_PREGUNTAS_POR_DIA", 5),
     },
     falsoCoincide: bandera(entorno, "FALSO_COINCIDE", false),
+    cuantoRecuerda: numero(entorno, "CUANTO_RECUERDA", 20),
+    maxAnotacionesPorDia: numero(entorno, "MAX_ANOTACIONES_POR_DIA", 10),
     tareas: {
       precioMinimoMsats: numero(entorno, "PRECIO_MINIMO_MSATS", 1000),
       revisarCobrosSeg: numero(entorno, "REVISAR_COBROS_SEG", 60),

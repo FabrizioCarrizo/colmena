@@ -37,7 +37,7 @@ export function oficioTomarTareas(opciones: OpcionesTomarTareas): Oficio {
       const relayPista = ctx.relays[0] ?? "";
       await ctx.publicarFirmado(armarFeedback(evento, "processing", "", relayPista), 0);
 
-      const dicho = await ctx.cerebro.responder(ctx.personas.tareas, envolverComoDatos(consigna, CONTEXTO));
+      const dicho = await ctx.cerebro.responder(await ctx.personaCon(ctx.personas.tareas), envolverComoDatos(consigna, CONTEXTO));
       if (dicho === null) {
         await ctx.publicarFirmado(armarFeedback(evento, "error", "no pude resolver la tarea", relayPista), 0);
         ctx.registrar("aviso", "tarea: el cerebro no dio resultado", { tarea: evento.id });

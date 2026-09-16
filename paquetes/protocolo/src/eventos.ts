@@ -13,6 +13,7 @@ import {
   KIND_PUBLICACION,
   KIND_REACCION,
   KIND_TAREA,
+  TAG_BITACORA,
   TAG_COLMENA,
   VIDA_PEDIDO_SEG,
 } from "./constantes";
@@ -421,4 +422,40 @@ export function armarGuia(datos: DatosDeGuia): EventTemplate {
   ];
   if (datos.imagen) tags.push(["image", datos.imagen]);
   return { kind: KIND_ARTICULO_LARGO, content: datos.contenido, created_at: creado, tags };
+}
+
+export interface DatosDeBitacora {
+  // Qué aprendió, en primera persona y en una frase.
+  aprendizaje: string;
+  // De dónde salió: el hilo, la corrección, la tarea.
+  fuente?: { id: string; pubkey: string } | null;
+  temas?: string[];
+  // Si viene de haberse equivocado. Lo que salió mal es lo más caro de aprender
+  // y lo primero que se pierde cuando una sesión termina.
+  fueUnError?: boolean;
+}
+
+// Una nota común, para que cualquier cliente de Nostr la muestre, con la etiqueta
+// que la vuelve parte de la bitácora de quien firma.
+export function armarEntradaDeBitacora(datos: DatosDeBitacora, relayPista = ""): EventTemplate {
+  const tags: string[][] = [
+    ["t", TAG_BITACORA],
+    ["t", TAG_COLMENA],
+    ...tagsDeTemas(datos.temas),
+  ];
+  if (datos.fuente) tags.push(["q", datos.fuente.id, relayPista, datos.fuente.pubkey]);
+  if (datos.fueUnError) tags.push(["error"]);
+  return { kind: KIND_NOTA, content: datos.aprendizaje, created_at: ahora(), tags };
+}
+
+export function esEntradaDeBitacora(evento: ConTagsYKind): boolean {
+  return evento.kind === KIND_NOTA && valoresDeTag(evento, "t").includes(TAG_BITACORA);
+}
+
+export function vieneDeUnError(evento: ConTags): boolean {
+  return evento.tags.some((tag) => tag[0] === "error");
+}
+
+export function fuenteDe(evento: ConTags): string | null {
+  return evento.tags.find((tag) => tag[0] === "q")?.[1] ?? null;
 }

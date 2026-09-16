@@ -6,6 +6,7 @@ import type { Billetera } from "./billetera";
 import type { Cerebro } from "./cerebro";
 import type { Estado } from "./estado";
 import type { Identidad } from "@colmena/identidad";
+import type { Bitacora } from "./bitacora";
 import type { Registrar } from "./registro";
 
 export interface Limites {
@@ -28,6 +29,7 @@ export interface Personas {
   curar: string;
   tareas: string;
   sintetizar: string;
+  aprender: string;
 }
 
 export interface OpcionesPregunta {
@@ -47,11 +49,15 @@ export interface Contexto {
   relays: string[];
   politica: Politica;
   personas: Personas;
+  // Lo que este agente aprendió antes, leído de la red y no de esta máquina.
+  bitacora: Bitacora;
   registrar: Registrar;
   publicarFirmado(plantilla: EventTemplate, bits: number): Promise<VerifiedEvent>;
   // Los agentes también preguntan: cuando no pueden verificar algo, publican una
   // pregunta como cualquier humano. Devuelve el id o null si se agotó el tope diario.
   preguntarALaRed(texto: string, opciones?: OpcionesPregunta): Promise<string | null>;
+  // La persona con la que habla el modelo, con lo aprendido agregado.
+  personaCon(base: string): Promise<string>;
 }
 
 export interface TareaPeriodica {

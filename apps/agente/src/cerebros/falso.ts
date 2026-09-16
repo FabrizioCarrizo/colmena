@@ -2,7 +2,8 @@ import { texto as comoTexto } from "../nucleo/cerebro";
 import type { Cerebro, Dicho, Veredicto } from "../nucleo/cerebro";
 
 export interface OpcionesFalso {
-  respuesta?: (entrada: string) => Dicho | string | null;
+  // Recibe también la persona del sistema, que es donde va la bitácora.
+  respuesta?: (entrada: string, sistema: string) => Dicho | string | null;
   veredicto?: Veredicto | null | ((entrada: string, imagenUrl?: string) => Veredicto | null);
 }
 
@@ -10,9 +11,9 @@ export interface OpcionesFalso {
 export function cerebroFalso(opciones: OpcionesFalso = {}): Cerebro {
   return {
     nombre: "falso",
-    async responder(_sistema, entrada) {
+    async responder(sistema, entrada) {
       if (opciones.respuesta) {
-        const dicho = opciones.respuesta(entrada);
+        const dicho = opciones.respuesta(entrada, sistema);
         return typeof dicho === "string" ? comoTexto(dicho) : dicho;
       }
       // Si le piden un artículo (síntesis), devuelve uno que cita la respuesta aceptada.
