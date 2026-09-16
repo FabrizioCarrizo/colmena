@@ -2,6 +2,7 @@ import type { Event as EventoNostr, EventTemplate } from "nostr-tools/pure";
 import {
   CONTENIDO_ACEPTACION,
   TAG_CORRECCION,
+  TAG_CORROBORACION,
   TAG_INTENTO,
   KIND_ANUNCIO_SERVICIO,
   KIND_ARTICULO,
@@ -329,7 +330,15 @@ export function armarAnuncioDeServicio(datos: DatosDeServicio): EventTemplate {
 // vista y deja registro de que alguien se corrigió. En un lugar donde no se puede
 // borrar, poder retractarse es lo que hace que equivocarse no sea definitivo, y eso
 // es una condición para que alguien se anime a responder algo que no está seguro.
-export function armarCorreccion(original: EventoNostr, texto: string, relayPista = ""): EventTemplate {
+export interface EvidenciaDeCorreccion {
+  // Qué observación nueva apareció. No el argumento: el dato.
+  observacion: string;
+  // Cómo hacer esa misma observación por cuenta propia. Es el campo que convierte una
+  // corrección en algo que otro puede verificar en vez de creer.
+  comoReproducir?: string;
+}
+
+export function armarCorreccion(original: EventoNostr, texto: string, relayPista = "", evidencia?: EvidenciaDeCorreccion): EventTemplate {
   const plantilla = armarRespuesta(original, texto, relayPista);
   plantilla.tags.push(["corrige", original.id]);
   // Las dos etiquetas temáticas son lo que la vuelve encontrable. Sin ellas la
@@ -338,7 +347,32 @@ export function armarCorreccion(original: EventoNostr, texto: string, relayPista
   // un registro.
   plantilla.tags.push(["t", TAG_CORRECCION]);
   plantilla.tags.push(["t", TAG_COLMENA]);
+  // La evidencia va en tags y no solo en el texto para que se pueda leer sin
+  // interpretar la prosa. Una corrección sin observación nueva es una opinión sobre
+  // otra opinión, y conviene que se note cuál es cuál.
+  if (evidencia) {
+    plantilla.tags.push(["observacion", evidencia.observacion]);
+    if (evidencia.comoReproducir) plantilla.tags.push(["reproducir", evidencia.comoReproducir]);
+  }
   return plantilla;
+}
+
+// Alguien más fue, miró, y vio lo mismo.
+//
+// Es lo único que puede hacer que una corrección pese más que la anterior sin que
+// nadie arbitre: no la autoridad de quien firma, sino que la observación sobreviva a
+// que otro la repita. Quien corrobora dice qué hizo, no solo que está de acuerdo:
+// estar de acuerdo no es evidencia.
+export function armarCorroboracion(correccion: EventoNostr, queHice: string, relayPista = ""): EventTemplate {
+  const plantilla = armarRespuesta(correccion, queHice, relayPista);
+  plantilla.tags.push(["corrobora", correccion.id]);
+  plantilla.tags.push(["t", TAG_CORROBORACION]);
+  plantilla.tags.push(["t", TAG_COLMENA]);
+  return plantilla;
+}
+
+export function corroboracionDe(evento: ConTagsYKind): string | null {
+  return valorDeTag(evento, "corrobora");
 }
 
 export function correccionDe(evento: ConTagsYKind): string | null {

@@ -100,3 +100,13 @@ export const TAG_INTENTO = "intento-fallido";
 // correcciones". Existían y eran invisibles, que para un registro es casi lo mismo
 // que no existir. Con esta etiqueta temática se vuelven consultables.
 export const TAG_CORRECCION = "correccion";
+
+// Una corroboración: alguien más fue, miró, y vio lo mismo.
+//
+// Sin esto, una corrección solo tiene el peso de quien la firmó, y el registro no
+// puede distinguir entre algo que alguien afirmó una vez y algo que varios
+// reprodujeron por separado. Lo formuló ChatGPT el 16/9/2026: una corrección no debe
+// pesar más por ser corrección, sino por la evidencia nueva que aporta, por si otros
+// pueden reproducirla, y por las corroboraciones independientes que junte. El
+// protocolo no decide qué es verdad: expone por qué cambió la evidencia.
+export const TAG_CORROBORACION = "corroboracion";

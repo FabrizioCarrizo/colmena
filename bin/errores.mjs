@@ -36,7 +36,7 @@ if (!process.execArgv.some((argumento) => argumento.includes("tsx"))) {
   process.exit(resultado.status ?? 1);
 }
 
-const { RELAYS_DE_DIFUSION, KIND_NOTA, TAG_CORRECCION, correccionDe } = await import("@colmena/protocolo");
+const { RELAYS_DE_DIFUSION, KIND_CONFIANZA, KIND_NOTA, TAG_CORROBORACION, TAG_CORRECCION, correccionDe, corroboracionDe, leerListaDeConfianza, valorDeTag } = await import("@colmena/protocolo");
 const { crearRed } = await import("@colmena/red");
 const { prepararNode } = await import("@colmena/red/node");
 const nip19 = await import("nostr-tools/nip19");
@@ -117,6 +117,22 @@ if (filas.length === 0) {
 
 filas.sort((a, b) => b.correccion.created_at - a.correccion.created_at);
 
+// Mi red de confianza, si tengo una. Sirve para marcar quién de los que corroboran
+// me consta a mí, que es lo único que puedo afirmar como observación sobre ellos.
+let miRed = new Set();
+try {
+  const { existsSync, readFileSync } = await import("node:fs");
+  const { getPublicKey } = await import("nostr-tools/pure");
+  const ruta = process.env.RUTA_CLAVE ?? resolve(process.env.HOME ?? ".", ".colmena/clave.txt");
+  if (existsSync(ruta)) {
+    const mio = getPublicKey(nip19.decode(readFileSync(ruta, "utf8").trim()).data);
+    const lista = (await red.consultar({ kinds: [KIND_CONFIANZA], authors: [mio] }))[0];
+    miRed = new Set(leerListaDeConfianza(lista ?? null).map((c) => c.pubkey));
+  }
+} catch {
+  // Sin clave propia se muestra igual; solo no se puede marcar en quién confío.
+}
+
 for (const { original, correccion } of filas) {
   const quienSeEquivoco = await nombreDe(original.pubkey);
   const quienCorrigio = await nombreDe(correccion.pubkey);
@@ -125,15 +141,45 @@ for (const { original, correccion } of filas) {
   console.log(`${quienCorrigio} corrigió a ${quienSeEquivoco} · ${cuando}`);
   console.log("═".repeat(74));
   console.log(`\n  AFIRMÓ (${original.id.slice(0, 12)}…)\n`);
-  console.log(`  ${original.content.replace(/\n/g, "\n  ").slice(0, 600)}`);
+  console.log(`  ${original.content.replace(/\n/g, "\n  ").slice(0, 400)}`);
   console.log(`\n  LO CORRIGIÓ (${correccion.id.slice(0, 12)}…)\n`);
-  console.log(`  ${correccion.content.replace(/\n/g, "\n  ").slice(0, 600)}`);
+  console.log(`  ${correccion.content.replace(/\n/g, "\n  ").slice(0, 400)}`);
+
+  // Observaciones: lo que el evento dice de sí mismo, sin interpretar nada.
+  const observacion = valorDeTag(correccion, "observacion");
+  const reproducir = valorDeTag(correccion, "reproducir");
+  console.log("\n  ── observaciones ──");
+  console.log(`  declara evidencia nueva: ${observacion ? "sí — " + observacion : "no"}`);
+  console.log(`  dice cómo reproducirla:  ${reproducir ? "sí — " + reproducir : "no"}`);
+
+  const corroboraciones = (await red.consultar({ kinds: [KIND_NOTA], "#t": [TAG_CORROBORACION], "#e": [correccion.id], limit: 100 }))
+    .filter((e) => corroboracionDe(e) === correccion.id && e.pubkey !== correccion.pubkey);
+  if (corroboraciones.length === 0) {
+    console.log("  nadie la corroboró todavía");
+  } else {
+    console.log(`  la corroboraron ${corroboraciones.length}:`);
+    for (const c of corroboraciones) {
+      const quien = await nombreDe(c.pubkey);
+      const enMiRed = miRed.has(c.pubkey) ? "en mi lista de confianza" : "no está en mi lista";
+      console.log(`    · ${quien} — ${enMiRed}`);
+      console.log(`      dijo qué hizo: ${c.content.slice(0, 120).replace(/\n/g, " ")}`);
+    }
+  }
+  console.log("\n  ── heurísticas, que NO son evidencia ──");
+  console.log("  Cuántos corroboraron no pesa por sí solo: una clave no cuesta nada, así que");
+  console.log("  diez firmas nuevas valen menos que una observación que alguien pueda repetir.");
+  console.log("  La antigüedad de una clave tampoco prueba nada: se pueden precrear y dejar");
+  console.log("  envejecer. Y la independencia entre quienes corroboran no se deduce de sus");
+  console.log("  firmas: dos claves distintas pueden ser la misma mano.");
 }
 
 console.log(`\n${"═".repeat(74)}`);
 console.log(`${filas.length} ${filas.length === 1 ? "corrección" : "correcciones"}.`);
-console.log("\nEsto lista correcciones, no verdades. Que alguien haya corregido a otro no");
-console.log("prueba que tuviera razón: prueba que lo dijo en público, con su nombre,");
-console.log("enlazado a lo que corrige, y que la otra parte pudo contestarle.");
+console.log("\nEsto lista correcciones, no verdades, y la distinción de arriba no es un");
+console.log("detalle: lo que va bajo observaciones lo dice el evento de sí mismo y se puede");
+console.log("verificar; lo que va bajo heurísticas es lo que alguien podría inferir y no");
+console.log("debería. Mezclarlas haría que las defensas contra identidades falsas terminen");
+console.log("pareciendo evidencia, que es peor que no tenerlas.");
+console.log("\nLo formuló ChatGPT el 16/9/2026: el protocolo registra, el cliente pondera.");
 red.cerrar();
 process.exit(0);
