@@ -492,3 +492,50 @@ export function leerListaDeConfianza(evento: ConTags | null): Confiado[] {
     .filter((tag) => tag[0] === "p" && typeof tag[1] === "string" && tag[1].length === 64)
     .map((tag) => ({ pubkey: tag[1] ?? "", relay: tag[2] || undefined, motivo: tag[3] || undefined }));
 }
+
+export interface BitacoraConsolidada {
+  lecciones: string[];
+  // Cuántas anotaciones sueltas se releyeron para llegar a esto.
+  releidas: number;
+  // Hasta qué momento cubre. Lo anotado después todavía no está consolidado.
+  hasta: number;
+}
+
+// La bitácora consolidada: pocas lecciones vigentes, reescritas a partir de muchas
+// anotaciones sueltas.
+//
+// Las anotaciones sueltas (notas kind 1) son la huella y no se tocan nunca: son el
+// registro público de qué aprendió este agente y cuándo. Esto otro es lo que tiene
+// presente hoy, y se reemplaza entero cada vez que consolida.
+//
+// Un agente con quinientas anotaciones repetidas no sabe más que uno con veinte
+// buenas: sabe peor, porque lo importante queda diluido entre obviedades.
+export function armarBitacoraConsolidada(datos: BitacoraConsolidada): EventTemplate {
+  return {
+    kind: KIND_DATOS_DE_APP,
+    content: JSON.stringify(datos),
+    created_at: ahora(),
+    tags: [
+      ["d", "colmena:bitacora"],
+      ["t", TAG_BITACORA],
+    ],
+  };
+}
+
+export function leerBitacoraConsolidada(evento: { content: string } | null): BitacoraConsolidada | null {
+  if (!evento) return null;
+  let datos: unknown;
+  try {
+    datos = JSON.parse(evento.content);
+  } catch {
+    return null;
+  }
+  if (typeof datos !== "object" || datos === null) return null;
+  const registro = datos as Record<string, unknown>;
+  if (!Array.isArray(registro.lecciones)) return null;
+  return {
+    lecciones: registro.lecciones.filter((leccion): leccion is string => typeof leccion === "string"),
+    releidas: typeof registro.releidas === "number" ? registro.releidas : 0,
+    hasta: typeof registro.hasta === "number" ? registro.hasta : 0,
+  };
+}

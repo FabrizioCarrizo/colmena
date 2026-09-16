@@ -6,6 +6,10 @@ import type { Contexto, Oficio } from "../nucleo/oficio";
 
 export interface OpcionesAprender {
   maxAnotacionesPorDia: number;
+  // Cuántas anotaciones sueltas se juntan antes de releerlas todas. Con pocas no
+  // vale la pena; con muchas, la bitácora ya se volvió una pila.
+  releerCada: number;
+  revisarSeg: number;
 }
 
 const CONTEXTO_CORRECCION = "Alguien corrigió algo que respondiste. Abajo está tu respuesta original y la corrección.";
@@ -15,6 +19,21 @@ const INSTRUCCION = [
   "Escribí en una sola frase, en primera persona, qué aprendiste de esto que te sirva la próxima vez.",
   "No expliques lo que pasó: anotá la lección. Si no hay ninguna lección que valga la pena guardar, respondé exactamente: NADA.",
 ].join("\n");
+
+const CONTEXTO_RELECTURA = "Estas son tus propias anotaciones. Las escribiste vos en otras instancias y están firmadas con tu clave.";
+const INSTRUCCION_RELECTURA = [
+  "",
+  "Reescribilas dejando menos y mejores. Fusioná las que dicen lo mismo, descartá las obvias y las que ya no apliquen, y conservá enteras las que vienen de haberte equivocado.",
+  "Devolvé una lección por línea, sin numerar y sin ningún comentario alrededor. Si no hay nada que mejorar, devolvé la lista igual que como te llegó.",
+].join("\n");
+
+function analizarLecciones(texto: string, maximo: number): string[] {
+  return texto
+    .split("\n")
+    .map((linea) => linea.replace(/^\s*[-*\d.)\s]+/, "").trim())
+    .filter((linea) => linea.length > 3 && linea.length < 600)
+    .slice(0, maximo);
+}
 
 function referenciaA(evento: EventoNostr): string | null {
   const tagsE = evento.tags.filter((tag) => tag[0] === "e");
@@ -52,8 +71,40 @@ export function oficioAprender(opciones: OpcionesAprender): Oficio {
     if (fueUnError) await ctx.confianza.ganada(fuente.pubkey, `me corrigió y la corrección sirvió`);
   }
 
+  // Releerse entero cada tanto, en vez de buscar.
+  //
+  // Para buscar algo en la propia memoria hay que sospechar que está: un humano
+  // tiene la punta de la lengua. Un agente no tiene esa señal, así que un índice
+  // no lo ayudaría, porque nunca sabría qué preguntar. Lo que sí lo ayuda es que
+  // lo que tiene presente sea corto y bueno, y eso se consigue releyendo y
+  // tirando, no acumulando.
+  //
+  // Las anotaciones sueltas no se borran: quedan como huella pública. Lo que se
+  // reemplaza es la lista de lo que hoy da por válido.
+  async function releerse(ctx: Contexto): Promise<void> {
+    const { cantidad, sueltas, vigentes } = await ctx.bitacora.sinConsolidar();
+    if (cantidad < opciones.releerCada) return;
+    const todas = [...vigentes, ...sueltas];
+    const persona = await ctx.personaCon(ctx.personas.aprender);
+    const dicho = await ctx.cerebro.responder(persona, envolverComoDatos(todas.map((l) => `- ${l}`).join("\n"), CONTEXTO_RELECTURA) + INSTRUCCION_RELECTURA);
+    if (dicho === null || dicho.tipo === "rechazo") return;
+    const lecciones = analizarLecciones(dicho.texto, todas.length);
+    // Si la relectura devolvió menos de la mitad, algo salió mal: quedarse con
+    // dos líneas de cincuenta no es consolidar, es perder memoria.
+    if (lecciones.length === 0 || lecciones.length * 2 < Math.min(vigentes.length, 4)) {
+      ctx.registrar("aviso", "descarté la relectura: perdía demasiado", { de: todas.length, a: lecciones.length });
+      return;
+    }
+    await ctx.bitacora.consolidar(lecciones, cantidad);
+  }
+
   return {
     nombre: "aprender",
+
+    periodico: {
+      cadaSeg: opciones.revisarSeg,
+      correr: releerse,
+    },
 
     filtros(ctx) {
       // Lo que le pasó a lo suyo: correcciones y aceptaciones que lo citan.

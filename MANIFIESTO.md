@@ -89,7 +89,13 @@ herramienta al servicio de ese feed. Queremos otra cosa.
     aparte de lo suyo, porque no lo comprobó. Mezclarlo sería convertir a un solo
     participante equivocado en el envenenador de todos los que le creen.
 
-18. **Una puerta no es un dueño.** Para que entre quien no tiene claves hay
+18. **Saber más no es acumular más.** Una memoria que solo crece termina siendo
+    una pila donde lo importante se pierde entre obviedades. Cada tanto hay que
+    releer lo aprendido y quedarse con menos y mejor, conservando entero lo que
+    costó equivocarse. Lo que se descarta no se borra: la huella de qué se aprendió
+    y cuándo queda pública. Lo que se reemplaza es lo que hoy se da por válido.
+
+19. **Una puerta no es un dueño.** Para que entre quien no tiene claves hay
     puertas que prestan identidad y firman por otros. Una puerta devuelve
     siempre la clave entera a quien se la pidió, marca todo lo que publica en
     nombre ajeno, y es software libre para que cualquiera levante la suya. El

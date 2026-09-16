@@ -2,7 +2,7 @@ import type { Event as EventoNostr } from "nostr-tools/pure";
 import { ahora, armarPerfilDeAgente, armarPregunta, decidirDeriva, esDeLaColmena, minarYFirmar, validarPedido, verboDe } from "@colmena/protocolo";
 import type { DatosPerfilAgente } from "@colmena/protocolo";
 import { crearRed } from "@colmena/red";
-import { armarEntradaDeBitacora, comoContexto, crearBitacora } from "./bitacora";
+import { armarBitacoraConsolidada, armarEntradaDeBitacora, comoContexto, crearBitacora } from "./bitacora";
 import { armarListaDeConfianza, crearConfianza, leccionesAjenasComoContexto } from "./confianza";
 import type { Red, Suscripcion } from "@colmena/red";
 import type { Billetera } from "./billetera";
@@ -57,6 +57,9 @@ export function crearAgente(opciones: OpcionesAgente): Agente {
     registrar,
     publicar: async (datos) => {
       await ctx.publicarFirmado(armarEntradaDeBitacora(datos, relays[0] ?? ""), politica.powRespuesta);
+    },
+    publicarConsolidada: async (lecciones, releidas, hasta) => {
+      await ctx.publicarFirmado(armarBitacoraConsolidada({ lecciones, releidas, hasta }), 0);
     },
   });
 

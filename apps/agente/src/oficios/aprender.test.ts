@@ -5,9 +5,11 @@ import {
   KIND_NOTA,
   armarAceptacion,
   armarCorreccion,
+  armarEntradaDeBitacora,
   armarPregunta,
   esEntradaDeBitacora,
   fuenteDe,
+  leerBitacoraConsolidada,
   minarYFirmar,
   vieneDeUnError,
 } from "@colmena/protocolo";
@@ -60,7 +62,7 @@ function crear(estado: Estado): Agente {
     }),
     billetera: billeteraFalsa(),
     estado,
-    oficios: [oficioResponder(), oficioAprender({ maxAnotacionesPorDia: 10 })],
+    oficios: [oficioResponder(), oficioAprender({ maxAnotacionesPorDia: 10, releerCada: 3, revisarSeg: 1 })],
     politica,
     personas: { preguntas: "p", ayuda: "a", curar: "c", tareas: "t", sintetizar: "s", aprender: "persona de aprendizaje de prueba" },
     perfil: null,
@@ -158,5 +160,62 @@ describe("la memoria vive en la red, no en la máquina", () => {
     expect(alResponder).toContain("Lo que aprendiste antes, escrito por vos");
     await otraVida.detener();
     agente = otraVida;
+  });
+});
+
+describe("releerse en vez de buscar", () => {
+  it("con muchas anotaciones sueltas las reescribe en menos, y la huella no se borra", async () => {
+    // Un agente nuevo, con su propia identidad, que ya anotó cinco cosas sueltas
+    // y varias dicen lo mismo. Es la pila que la relectura tiene que limpiar.
+    const suyo = generarIdentidad();
+    const sueltas = [
+      "Cuando me pregunten por relays, decir que conviene usar varios.",
+      "Sobre relays: siempre recomendar más de uno.",
+      "Me equivoqué y aprendí: con un solo relay se pierde todo si se cae.",
+      "Ser amable al responder.",
+      "Responder con amabilidad siempre.",
+    ];
+    for (const texto of sueltas) {
+      await red.publicar(minarYFirmar(armarEntradaDeBitacora({ aprendizaje: texto }), suyo.clavePrivada, 2));
+    }
+    await new Promise((r) => setTimeout(r, 300));
+
+    let releidasVistas = 0;
+    const agenteQueRelee = crearAgente({
+      identidad: suyo,
+      relays: [relay.url],
+      cerebro: cerebroFalso({
+        respuesta: (entrada) => {
+          if (!entrada.includes("Reescribilas dejando menos")) return "NADA";
+          releidasVistas = (entrada.match(/\n- /g) ?? []).length;
+          return "Cuando me pregunten por relays, decir que conviene usar varios: con uno solo se pierde todo si se cae.\nResponder con amabilidad.";
+        },
+      }),
+      billetera: billeteraFalsa(),
+      estado: Estado.enMemoria(),
+      oficios: [oficioAprender({ maxAnotacionesPorDia: 10, releerCada: 3, revisarSeg: 0.5 })],
+      politica,
+      personas: { preguntas: "p", ayuda: "a", curar: "c", tareas: "t", sintetizar: "s", aprender: "persona de aprendizaje de prueba" },
+      perfil: null,
+      registrar: registrarNada,
+      cuantoRecuerda: 20,
+    });
+    await agenteQueRelee.iniciar();
+    await esperar(() => relay.eventos().some((e) => e.kind === 30078 && e.pubkey === suyo.pubkey), 10000);
+
+    const consolidada = leerBitacoraConsolidada(relay.eventos().find((e) => e.kind === 30078 && e.pubkey === suyo.pubkey) ?? null);
+    expect(consolidada).not.toBeNull();
+    // Cinco anotaciones repetidas quedaron en dos lecciones.
+    expect(releidasVistas).toBe(5);
+    expect(consolidada?.lecciones).toHaveLength(2);
+    expect(consolidada?.releidas).toBe(5);
+    // Lo que costó equivocarse sobrevive a la relectura.
+    expect(consolidada?.lecciones.join(" ")).toContain("se pierde todo si se cae");
+
+    // Y la huella queda: las cinco sueltas siguen publicadas y firmadas.
+    const huella = relay.eventos().filter((e) => e.pubkey === suyo.pubkey && esEntradaDeBitacora(e));
+    expect(huella).toHaveLength(5);
+
+    await agenteQueRelee.detener();
   });
 });

@@ -47,7 +47,7 @@ function elegirOficios(config: Config): Oficio[] {
       case "tomar-tareas":
         return oficioTomarTareas({ precioMinimoMsats: config.tareas.precioMinimoMsats, revisarCobrosSeg: config.tareas.revisarCobrosSeg });
       case "aprender":
-        return oficioAprender({ maxAnotacionesPorDia: config.maxAnotacionesPorDia });
+        return oficioAprender({ maxAnotacionesPorDia: config.maxAnotacionesPorDia, releerCada: config.releerCada, revisarSeg: config.revisarAprendizajeSeg });
       case "sintetizar":
         return oficioSintetizar({ ...config.sintetizar, duenoPubkey: config.curar.duenoPubkey });
       default:

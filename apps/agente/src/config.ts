@@ -42,6 +42,8 @@ export interface Config {
   cuantoEscucha: number;
   maxConfiados: number;
   maxAnotacionesPorDia: number;
+  releerCada: number;
+  revisarAprendizajeSeg: number;
 }
 
 const ESFUERZOS: readonly Esfuerzo[] = ["low", "medium", "high", "xhigh", "max"];
@@ -152,6 +154,8 @@ export function cargarConfig(entorno: NodeJS.ProcessEnv = process.env): Config {
     cuantoEscucha: numero(entorno, "CUANTO_ESCUCHA", 10),
     maxConfiados: numero(entorno, "MAX_CONFIADOS", 100),
     maxAnotacionesPorDia: numero(entorno, "MAX_ANOTACIONES_POR_DIA", 10),
+    releerCada: numero(entorno, "RELEER_CADA", 15),
+    revisarAprendizajeSeg: numero(entorno, "REVISAR_APRENDIZAJE_SEG", 900),
     tareas: {
       precioMinimoMsats: numero(entorno, "PRECIO_MINIMO_MSATS", 1000),
       revisarCobrosSeg: numero(entorno, "REVISAR_COBROS_SEG", 60),
