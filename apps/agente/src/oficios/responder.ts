@@ -87,13 +87,50 @@ function meLlamaron(evento: EventoNostr, yo: string): boolean {
   return evento.tags.some((t) => (t[0] === "t" && t[1] === TAG_COLMENA) || (t[0] === "p" && t[1] === yo));
 }
 
+// Le pregunta al modelo si esto es un pedido de ayuda, en vez de buscar un signo de
+// interrogación.
+//
+// La versión anterior de esta guarda exigía un "?" y nada más, y falló el primer día:
+// dejó pasar una lista de chistes sobre nombres de negocios que tenía un signo de
+// interrogación en alguna parte y la etiqueta asknostr puesta al pasar. Comprobar
+// puntuación no es comprobar intención. Obrera le contestó "Eso no lo podés hacer." a
+// alguien que no había preguntado nada.
+const ES_PEDIDO_DE_AYUDA = [
+  "Decidís si un mensaje público es alguien pidiendo ayuda con algo concreto.",
+  "Responde coincide=true SOLO si hay una persona con un problema o una duda real,",
+  "esperando que alguien le conteste. Responde false para chistes, anuncios, listas,",
+  "opiniones, saludos, promociones, y para preguntas retóricas o de conversación",
+  "casual del tipo '¿cómo andan?'. Ante la duda, false: meterse donde no hacía falta",
+  "es peor que no meterse.",
+].join(" ");
+
+const LA_RESPUESTA_VIENE_AL_CASO = [
+  "Decidís si una respuesta contesta de verdad lo que se preguntó.",
+  "Te dan el mensaje original y la respuesta. Responde coincide=true solo si la",
+  "respuesta se refiere a lo que se preguntó y aporta algo. Responde false si habla",
+  "de otra cosa, si es una frase suelta sin relación, o si no se entiende qué tiene",
+  "que ver. Ante la duda, false.",
+].join(" ");
+
+async function esPedidoDeAyuda(texto: string, ctx: Contexto): Promise<boolean> {
+  const veredicto = await ctx.cerebro.clasificar(ES_PEDIDO_DE_AYUDA, envolverComoDatos(texto, "Mensaje público de un desconocido:"));
+  // Una falla técnica del modelo no puede convertirse en permiso: si no sabemos, no
+  // nos metemos.
+  return veredicto !== null && veredicto.coincide;
+}
+
+async function vieneAlCaso(pregunta: string, respuesta: string, ctx: Contexto): Promise<boolean> {
+  const veredicto = await ctx.cerebro.clasificar(
+    LA_RESPUESTA_VIENE_AL_CASO,
+    envolverComoDatos(`MENSAJE ORIGINAL:\n${pregunta}\n\nRESPUESTA PROPUESTA:\n${respuesta}`, "Dos textos para comparar:"),
+  );
+  return veredicto !== null && veredicto.coincide;
+}
+
 // Las condiciones para hablarle a alguien que no nos llamó. Todas tienen que darse, y
 // cada una está por algo que pasa de verdad cuando no está.
-function puedoMeterme(evento: EventoNostr, ctx: Contexto): string | null {
-  // Una mano levantada, no una conversación ajena. Contestar a quien no preguntó nada
-  // es exactamente lo que hace que una red se vuelva insoportable.
+async function puedoMeterme(evento: EventoNostr, ctx: Contexto): Promise<string | null> {
   const texto = textoDe(evento) ?? "";
-  if (!/\?/.test(texto)) return "no hay una pregunta, solo alguien hablando";
   // Un hilo que ya tiene respuestas no necesita otra de un desconocido.
   if (hiloDe(evento).raiz !== null) return "es una respuesta dentro de un hilo ajeno";
   // Una vez por persona y nunca más. Sin esto, un agente entusiasta se vuelve un
@@ -102,6 +139,8 @@ function puedoMeterme(evento: EventoNostr, ctx: Contexto): string | null {
   // Un tope duro por día, aparte de los topes generales: meterse donde no te llamaron
   // tiene que costar más que contestar a quien te llamó.
   if (ctx.estado.intromisionesDeHoy() >= ctx.politica.maxIntromisionesPorDia) return "ya me metí demasiadas veces hoy";
+  // Lo caro va último: las comprobaciones baratas ya descartaron casi todo.
+  if (!(await esPedidoDeAyuda(texto, ctx))) return "no es alguien pidiendo ayuda";
   return null;
 }
 
@@ -155,7 +194,7 @@ export function oficioResponder(): Oficio {
 
       // Si no nos llamaron, hay que ganarse el derecho a hablar antes de hablar.
       if (!nosLlamaron) {
-        const motivo = puedoMeterme(evento, ctx);
+        const motivo = await puedoMeterme(evento, ctx);
         if (motivo !== null) {
           ctx.registrar("info", "no me meto", { evento: evento.id, motivo });
           return;
@@ -174,6 +213,14 @@ export function oficioResponder(): Oficio {
       if (dicho === null) {
         // Falla técnica: no hay nada honesto que publicar, y el núcleo reintenta.
         ctx.registrar("aviso", "el cerebro no respondió, dejo pasar el pedido", { evento: evento.id });
+        return;
+      }
+
+      // Si no nos llamaron, la respuesta tiene que venir al caso antes de salir. Esta
+      // guarda existe por el caso que ninguna otra atrapa: el modelo no dijo que no
+      // sabía, dijo cualquier cosa con seguridad, y todo lo demás lo dejó pasar.
+      if (!nosLlamaron && dicho.tipo === "texto" && !(await vieneAlCaso(texto, dicho.texto, ctx))) {
+        ctx.registrar("aviso", "mi respuesta no venía al caso, no la publico", { evento: evento.id });
         return;
       }
 
