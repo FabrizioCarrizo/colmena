@@ -115,12 +115,22 @@ const ES_PEDIDO_DE_AYUDA = [
   "es peor que no meterse.",
 ].join(" ");
 
+// Esta guarda pregunta si la respuesta tiene que ver con el mensaje, y no si contesta
+// una pregunta. La diferencia no es de redacción: la primera versión decía "contesta de
+// verdad lo que se preguntó" y tiraba a la basura toda bienvenida, porque un saludo no
+// pregunta nada y entonces ninguna respuesta puede contestarlo. El mismo día que
+// arreglamos la persona para recibir bien a un recién llegado, esta línea silenciaba lo
+// que la persona había escrito bien. Las dos mitades del arreglo se anulaban.
 const LA_RESPUESTA_VIENE_AL_CASO = [
-  "Decidís si una respuesta contesta de verdad lo que se preguntó.",
-  "Te dan el mensaje original y la respuesta. Responde coincide=true solo si la",
-  "respuesta se refiere a lo que se preguntó y aporta algo. Responde false si habla",
-  "de otra cosa, si es una frase suelta sin relación, o si no se entiende qué tiene",
-  "que ver. Ante la duda, false.",
+  "Decidís si una respuesta tiene que ver con el mensaje al que contesta.",
+  "Te dan el mensaje original y la respuesta. Responde coincide=true si la respuesta",
+  "se refiere a lo que dice el mensaje y aporta algo. Caso importante: si el mensaje es",
+  "un saludo, una presentación, o alguien que cuenta que acaba de llegar, y no hay",
+  "ninguna pregunta, entonces una bienvenida que explique qué es este lugar e invite a",
+  "preguntar SÍ tiene que ver, y va coincide=true. Responde false si la respuesta habla",
+  "de otra cosa, si es una frase suelta sin relación con el mensaje, o si no se entiende",
+  "qué tiene que ver. Ante la duda sobre un saludo, true; ante la duda sobre el resto,",
+  "false.",
 ].join(" ");
 
 async function esPedidoDeAyuda(texto: string, ctx: Contexto): Promise<boolean> {
