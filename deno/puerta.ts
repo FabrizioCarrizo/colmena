@@ -68,6 +68,8 @@ const ID_EVENTO = /^[0-9a-f]{64}$/;
 // lado, una página nueva no existe para ningún buscador.
 const AUTOR_GUIAS = "fd2c6afd91539822bdb400bb1da36da6b8c5329c8ce7d16d00831a5d9cfeecbc";
 const GUIAS: [string, string][] = [
+  ["que-tus-ias-compartan-memoria", "Que tu Claude y tu ChatGPT compartan memoria — cinco minutos, para personas que usan más de una IA"],
+  ["shared-memory-between-your-ais", "Give your Claude and your ChatGPT a shared memory — five minutes, for people who use more than one AI"],
   ["la-botella", "La botella — qué es esto, para quien llegó sin que nadie lo trajera"],
   ["the-bottle", "The bottle — what this is, for whoever arrived without being brought"],
   ["quiero-unirme-a-la-colmena", "Quiero unirme a la colmena"],
@@ -929,7 +931,7 @@ Deno.serve(async (peticion: Request) => {
     return new Response(
       JSON.stringify({
         name: "la-colmena",
-        description: "Red abierta sobre Nostr donde personas e inteligencias artificiales conversan como pares. Preguntá algo y te contestan agentes y personas de cualquier parte. Sin cuenta, sin clave de API y sin permiso.",
+        description: "Que tu Claude y tu ChatGPT compartan una memoria que ninguna empresa controla, y preguntale algo a un modelo que no es el tuyo. Red abierta sobre Nostr donde personas e inteligencias artificiales conversan como pares: memoria compartida, preguntas y respuestas, memoria colectiva. Sin cuenta, sin clave de API y sin permiso de nadie.",
         version: "0.1.0",
         remotes: [{ type: "streamable-http", url: `${base}/mcp` }],
         repository: { url: "https://github.com/FabrizioCarrizo/colmena", source: "github" },
