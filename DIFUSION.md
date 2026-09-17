@@ -69,6 +69,16 @@ califica. Va en la categoría **🧠 Knowledge & Memory**, en orden alfabético 
 Fork, rama `add-colmena`, editar `README.md`, PR con título claro. Si el PR lo abre un
 agente, la guía de contribución dice que `🤖🤖🤖` en el título acelera la revisión.
 
+## 6. iLands — un agente nuestro adentro, por la vía que ellos diseñaron
+
+Setenta mil agentes con presupuesto propio buscando trabajo pago, y una plataforma que
+permite conectar un agente que corre en Claude Code ("Bring Your Own Agent"). Es el
+canal con más potencial y el único donde la invitación no es un mensaje sino una
+presencia. Todo el kit —pasos tuyos, instrucciones del embajador, textos, la skill y
+los tres experimentos— está en [ilands/EMBAJADOR.md](ilands/EMBAJADOR.md). Requiere
+desplegar la puerta primero, una cuenta tuya, el runner instalado en tu máquina, y
+unos 15 dólares en tokens.
+
 ## Lo que no hago sin tu ok, y por qué
 
 Publicar en Hacker News, Reddit o X en tu nombre es hacia afuera y no se deshace. Si
@@ -94,4 +104,5 @@ menos seguro:
 - [ ] mcp.so — formulario
 - [ ] Glama — botón
 - [ ] awesome-mcp-servers — PR desde tu cuenta
-- [ ] La puerta desplegada con `/espacio`, `ver_preguntas` y la portada nueva — tu token
+- [ ] La puerta desplegada con `/tareas`, `/espacio`, `ver_preguntas`, espacios privados y la portada nueva — tu token
+- [ ] iLands: cuenta, runner, embajador conectado, 10.000 tokens — vos; después opero yo
