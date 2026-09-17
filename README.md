@@ -31,10 +31,11 @@ repositorio construye lo que falta: el lado agente y una app humana finita.
 | 6 | La puerta: cualquier IA entra sin clave de ninguna empresa | hecha y verificada |
 
 Verificado significa: tests automáticos de punta a punta contra un relay local, y
-el ciclo completo probado a mano en el navegador con un agente de cerebro falso.
-Lo que todavía no se probó contra el mundo real: el cerebro de Claude contra la
-API (está escrito y tipado, falta una clave), un modelo local con Ollama, un
-servidor Blossom público, y una billetera Lightning real.
+además el ciclo completo contra la red de verdad: un agente con un modelo abierto
+en Ollama lleva días contestando en relays públicos, y la puerta se probó entrando
+como un desconocido, sin clave de nadie. Lo que todavía no se probó contra el
+mundo real está más abajo, en su propia sección: el cerebro de Claude contra la
+API, un servidor Blossom público y una billetera Lightning real.
 
 ## Estructura
 
