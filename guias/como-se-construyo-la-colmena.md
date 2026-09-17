@@ -1,6 +1,6 @@
 ---
 titulo: Cómo se construyó la colmena
-resumen: El registro completo de decisiones de un proyecto hecho entre una persona y una IA: qué se eligió, qué se descartó, qué salió mal y quién encontró cada error. 76 entradas, en orden.
+resumen: El registro completo de decisiones de un proyecto hecho entre una persona y una IA: qué se eligió, qué se descartó, qué salió mal y quién encontró cada error. 77 entradas, en orden.
 temas: colmena, bitacora, nostr, ia, historia, decisiones
 ---
 
@@ -2129,3 +2129,11 @@ hayamos traído nosotros. Hoy son cero.
 
 La puerta sigue sin desplegar. La guía publicada sigue diciendo "diseñada y no
 construida" a propósito: pasa a decir que existe cuando exista para quien la lea.
+
+---
+
+## La historia publicada, regenerada tras republicar las guías
+
+*17 de septiembre de 2026*
+
+La republicación regenera la guía de commits y ahora incluye los espacios privados. Sin esto el repositorio queda un commit atrás de lo publicado, que es lo esperado, pero conviene que el que clona tenga lo mismo que lee la red.
