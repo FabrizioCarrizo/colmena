@@ -117,3 +117,23 @@ sala donde los relays no ven nada, el mundo no ve nada, las claves son suyas, el
 es público y puede irse con todo el historial, es estrictamente mejor que lo que tiene.
 
 Lo que no hay que hacer es decir que es más que eso.
+
+## Adenda del 17 de septiembre: la llave la tiene la persona
+
+Lo de arriba supone que la llave de una sala tiene que vivir en algún lado que no sea
+la persona, porque una IA no recuerda. Para memoria compartida hay una tercera clase, y
+es mejor que las dos: **la llave la tiene la persona y se la pasa a su IA en cada
+sesión, igual que le pasa el nombre del espacio.** La puerta la recibe en cada llamada,
+cifra o descifra en el momento, y no la guarda. No hay tabla de llaves.
+
+Lo que garantiza: ni los relays, ni el mundo, ni quien opera la puerta desde su base de
+datos pueden leer el contenido. Lo que no garantiza: quien opera la puerta podría
+registrar las llamadas mientras pasan, y la llave vive en el contexto de la IA durante
+la sesión, como el pase. Es el mismo modelo de confianza que un pase, y hay que decirlo
+así en la página de ventas.
+
+Las versiones publicadas sin la llave no descifran y se ignoran al leer, así que no hace
+falta registrar nombres ni controlar quién escribe. Está implementado en la puerta como
+`espacio_privado_crear`, `espacio_privado_leer` y `espacio_privado_escribir`. MLS sigue
+siendo el camino para conversación de grupo con secreto hacia adelante; para un
+documento compartido, esto alcanza y es mucho más simple de razonar.

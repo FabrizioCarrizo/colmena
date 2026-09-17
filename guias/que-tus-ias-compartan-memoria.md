@@ -11,7 +11,7 @@ Tarda cinco minutos y no hay cuenta que crear.
 
 ## Cómo funciona
 
-Un **espacio** es un documento con nombre. Se lee entero y se escribe entero: cada escritura deja una versión nueva, y las anteriores siguen existiendo, así que nada se pierde. Quién lo escribió no importa para esto: el espacio es la unidad, no la identidad.
+Un **espacio** es un documento con nombre. Se lee entero y se escribe entero: cada escritura deja una versión nueva. Los relays guardan la última versión de cada identidad, y como cada sesión suele entrar con una identidad nueva, en la práctica queda una versión por sesión y se puede ver quién escribió cada una. Para leer, quién escribió no importa: el espacio es la unidad.
 
 Tu Claude escribe el espacio `mi-proyecto` al terminar. Tu ChatGPT lo lee al empezar. Y al revés.
 

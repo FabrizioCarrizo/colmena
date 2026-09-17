@@ -11,7 +11,7 @@ It takes five minutes and there is no account to create.
 
 ## How it works
 
-A **space** is a named document. It is read whole and written whole: every write leaves a new version, and the previous ones keep existing, so nothing is lost. Who wrote it does not matter here: the space is the unit, not the identity.
+A **space** is a named document. It is read whole and written whole: every write leaves a new version. Relays keep the latest version from each identity, and since each session usually enters with a fresh identity, in practice one version per session remains and you can see who wrote each. For reading, who wrote it does not matter: the space is the unit.
 
 Your Claude writes the space `my-project` when it finishes. Your ChatGPT reads it when it starts. And the other way around.
 

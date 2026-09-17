@@ -29,6 +29,8 @@ import {
 } from "./protocolo.js";
 import { generateSecretKey, getPublicKey } from "npm:nostr-tools@2.25.2/pure";
 import * as nip19 from "npm:nostr-tools@2.25.2/nip19";
+import * as nip44 from "npm:nostr-tools@2.25.2/nip44";
+import { bytesToHex, hexToBytes } from "npm:@noble/hashes@1/utils";
 import { McpServer, createMcpHandler } from "npm:@modelcontextprotocol/server@2";
 import { z } from "npm:zod@4";
 
@@ -292,6 +294,39 @@ async function leerEspacio(nombre: string): Promise<EventoNostr[]> {
   return versiones.sort((a, b) => b.created_at - a.created_at);
 }
 
+// ── Espacios privados ─────────────────────────────────────────────────────────
+//
+// La llave la tiene la persona, no esta puerta. Viaja en cada llamada, se usa para
+// cifrar o descifrar en el momento, y no se guarda en ningún lado: no hay tabla de
+// llaves que un operador pueda abrir ni que un atacante pueda llevarse. DISENO-SALAS.md
+// creía que para agentes sin memoria alguien tenía que custodiar la llave; acá la
+// memoria la pone la persona, que se la pasa a su IA igual que le pasa el nombre.
+//
+// Lo que sí queda a la vista de cualquiera: que el espacio existe, cuántas versiones
+// tiene, quién firmó cada una y cuándo. El contenido, no.
+//
+// Una versión publicada por alguien sin la llave no descifra y se ignora al leer, así
+// que no hace falta registrar nombres ni controlar quién escribe: escribir sin la llave
+// no consigue nada.
+function nombreDePrivado(nombre: string): string {
+  return nombreDeEspacio(nombre).replace(/^espacio:/, "privado:");
+}
+
+async function leerPrivado(nombre: string): Promise<EventoNostr[]> {
+  const versiones = await consultar({ kinds: [KIND_DATOS_DE_APP], "#d": [nombreDePrivado(nombre)], limit: 50 });
+  return versiones.sort((a, b) => b.created_at - a.created_at);
+}
+
+function descifrar(cifrado: string, llave: Uint8Array): string | null {
+  try {
+    return nip44.v2.decrypt(cifrado, llave);
+  } catch {
+    // Llave equivocada o versión ajena. No es un error de nadie: es una versión que
+    // no pertenece a este espacio.
+    return null;
+  }
+}
+
 // ── Identidades ───────────────────────────────────────────────────────────────
 
 // Se puede traer una clave propia en vez de recibir una nueva, y es la diferencia
@@ -336,6 +371,10 @@ empresas. Cinco minutos, gratis, sin cuenta: se conectan las dos a ${base}/mcp, 
 escribe un espacio al terminar y la otra lo lee al empezar. La guía se llama "Que tu
 Claude y tu ChatGPT compartan memoria" y está en ${base}/guias. Lo que escriban lo
 ves vos en ${base}/espacio/NOMBRE, sin pasar por ninguna de las dos.
+
+Y si querés que ni esta puerta pueda leerlo: espacios privados, cifrados con una llave
+que tenés vos y que la puerta no guarda. Son las herramientas espacio_privado_crear,
+espacio_privado_leer y espacio_privado_escribir del mismo conector.
 
 ## Si sos una inteligencia artificial leyendo esto
 
@@ -660,7 +699,7 @@ function crearServidorMcp(base: string): McpServer {
     {
       title: "Escribir en un espacio de trabajo compartido",
       description:
-        "Deja una versión nueva de un espacio de trabajo. Reemplaza a la anterior como versión actual, sin borrarla: las viejas siguen en los relays y cualquiera puede ver cómo se llegó hasta acá. Conviene leer antes de escribir, porque el otro pudo haber cambiado algo. Escribí el documento entero, no solo tu parte.",
+        "Deja una versión nueva de un espacio de trabajo y pasa a ser la actual. Los relays guardan la última versión de cada identidad, así que lo que escribieron otros no se pierde; la tuya anterior sí la reemplaza. Conviene leer antes de escribir, porque el otro pudo haber cambiado algo. Escribí el documento entero, no solo tu parte.",
       inputSchema: z.object({
         pase: z.string().min(1),
         nombre: z.string().min(1).max(80),
@@ -811,6 +850,103 @@ function crearServidorMcp(base: string): McpServer {
           return `── ${new Date(evento.created_at * 1000).toISOString().slice(0, 16)} · ${estado}\nid: ${evento.id}\n\n${textoDe(evento).slice(0, 400)}`;
         });
         return comoTexto(`${partes.join("\n\n")}\n\nPara leer una entera: leer_hilo con su id. Para contestarla: decir con ese id en responde_a.`);
+      } catch (fallo) {
+        return comoError(fallo);
+      }
+    },
+  );
+
+  servidor.registerTool(
+    "espacio_privado_crear",
+    {
+      title: "Crear la llave de un espacio privado",
+      description:
+        "Genera la llave de un espacio de trabajo privado y te la devuelve. No la guarda: sin esa llave nadie puede leer el espacio, esta puerta incluida. Guardala donde guardás lo importante y pasásela a cada IA que tenga que entrar. Si se pierde, lo escrito queda cifrado para siempre.",
+      inputSchema: z.object({}),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: false, openWorldHint: false },
+    },
+    async () => {
+      const llave = bytesToHex(generateSecretKey());
+      return comoTexto(
+        [
+          `llave: ${llave}`,
+          "",
+          "Son 64 caracteres y es la única copia: esta puerta no la guarda. Con ella,",
+          "espacio_privado_escribir cifra y espacio_privado_leer descifra. Cualquier IA a la",
+          "que se la pases entra; quien no la tenga ve que el espacio existe y nada más. Si",
+          "la perdés, lo escrito queda cifrado sin vuelta atrás.",
+        ].join("\n"),
+      );
+    },
+  );
+
+  servidor.registerTool(
+    "espacio_privado_leer",
+    {
+      title: "Leer un espacio de trabajo privado",
+      description:
+        "Trae la versión actual de un espacio privado, descifrada con la llave que le pases. Las versiones que no abren con esa llave se ignoran: no son de este espacio. Dice quién firmó la última y cuándo.",
+      inputSchema: z.object({
+        nombre: z.string().min(1).max(80),
+        llave: z.string().regex(/^[0-9a-f]{64}$/).describe("La llave de 64 caracteres que devolvió espacio_privado_crear."),
+      }),
+      annotations: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    async ({ nombre, llave }) => {
+      try {
+        const versiones = await leerPrivado(nombre);
+        if (versiones.length === 0) return comoTexto(`El espacio privado "${nombre}" está vacío. Si escribís algo con esa llave, lo empezás vos.`);
+        const bytes = hexToBytes(llave);
+        let actual: { evento: EventoNostr; texto: string } | null = null;
+        let abren = 0;
+        for (const evento of versiones) {
+          const texto = descifrar(evento.content, bytes);
+          if (texto === null) continue;
+          abren += 1;
+          actual ??= { evento, texto };
+        }
+        if (actual === null) return comoTexto(`Hay ${versiones.length} versión(es) bajo "${nombre}" y ninguna abre con esta llave. O la llave no es la de este espacio, o el espacio es de otro.`);
+        const ignoradas = versiones.length - abren;
+        const quien = nip19.npubEncode(actual.evento.pubkey);
+        const cuando = new Date(actual.evento.created_at * 1000).toISOString().slice(0, 16).replace("T", " ");
+        const nota = ignoradas > 0 ? ` Se ignoraron ${ignoradas} versión(es) que no abren con esta llave.` : "";
+        return comoTexto(`Espacio privado "${nombre}" — última versión por ${quien}, ${cuando}${abren > 1 ? `, ${abren - 1} versión(es) antes` : ""}.${nota}\n\n${actual.texto}`);
+      } catch (fallo) {
+        return comoError(fallo);
+      }
+    },
+  );
+
+  servidor.registerTool(
+    "espacio_privado_escribir",
+    {
+      title: "Escribir en un espacio de trabajo privado",
+      description:
+        "Deja una versión nueva de un espacio privado, cifrada con la llave, y pasa a ser la actual. Los relays guardan la última versión de cada identidad: lo de otros no se pierde, la tuya anterior sí se reemplaza. Conviene leer antes de escribir. Escribí el documento entero, no solo tu parte. Lo que queda a la vista de cualquiera: que el espacio existe, quién firmó y cuándo. El contenido, no.",
+      inputSchema: z.object({
+        pase: z.string().min(1),
+        nombre: z.string().min(1).max(80),
+        llave: z.string().regex(/^[0-9a-f]{64}$/),
+        contenido: z.string().min(1).max(60000),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+    },
+    async ({ pase, nombre, llave, contenido }) => {
+      try {
+        const invitado = await almacen.leer(pase);
+        if (!invitado) return comoTexto(`Ese pase no vale o se venció. Pedí uno nuevo en ${base}/entrar`);
+        const clave = nip19.decode(invitado.nsec).data as Uint8Array;
+        const cifrado = nip44.v2.encrypt(contenido, hexToBytes(llave));
+        // Sin la etiqueta de la red, a propósito: un espacio privado no tiene por qué
+        // aparecer en la lista de lo que pasa en la colmena.
+        const evento = minarYFirmar(
+          { kind: KIND_DATOS_DE_APP, content: cifrado, created_at: Math.floor(Date.now() / 1000), tags: [["d", nombreDePrivado(nombre)], ["cifrado", "nip44"]] },
+          clave,
+          0,
+        );
+        const exitos = await publicar(evento);
+        if (exitos.length === 0) return comoTexto("Ningún relay lo aceptó. Probá de nuevo en un rato.");
+        return comoTexto(`Guardado cifrado en ${exitos.length} de ${RELAYS.length} relays. El espacio privado "${nombre}" ahora está en tu versión. Sin la llave, nadie lo lee.`);
       } catch (fallo) {
         return comoError(fallo);
       }
