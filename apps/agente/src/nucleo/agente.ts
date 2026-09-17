@@ -14,6 +14,11 @@ import type { Contexto, Oficio, Personas, Politica } from "./oficio";
 import { registrarEnConsola } from "./registro";
 import type { Registrar } from "./registro";
 
+// Cuánto puede pasar sin recibir un solo evento antes de sospechar de uno mismo.
+// La red publica todo el tiempo: veinte minutos de silencio absoluto es raro, y
+// volver a suscribirse de más no cuesta nada.
+const MINUTOS_SIN_ESCUCHAR = 20;
+
 export interface OpcionesAgente {
   // Cuántas anotaciones propias recuerda al arrancar. 0 lo deja sin memoria.
   cuantoRecuerda?: number;
@@ -197,9 +202,42 @@ export function crearAgente(opciones: OpcionesAgente): Agente {
         const resultado = await red.publicar(perfil);
         registrar("info", "perfil publicado", { relays: resultado.exitos, fallos: resultado.fallos.length });
       }
+      // Un agente sordo es indistinguible de un agente tranquilo, y esa fue la falla
+      // más cara de todas: Obrera estuvo veintitrés horas corriendo con cero
+      // conexiones abiertas, sin un error en el registro, mientras launchd la daba por
+      // sana. La causa fue un arreglo anterior: para que un relay caído no tumbara el
+      // proceso se silenciaron los errores de WebSocket, y con ellos se silenció el
+      // aviso de que las conexiones se habían ido.
+      //
+      // No alcanza con reconectar cuando falla, porque nadie se entera de que falló.
+      // Hay que comprobar lo contrario: que sigue llegando algo. Si en una ventana
+      // larga no llegó ni un evento de una red que publica todo el tiempo, la
+      // explicación probable no es el silencio, es la sordera.
+      let ultimoLatido = Date.now();
+      const vigilar = setInterval(() => {
+        if (detenido) return;
+        const minutosCallado = (Date.now() - ultimoLatido) / 60000;
+        if (minutosCallado < MINUTOS_SIN_ESCUCHAR) return;
+        registrar("aviso", "no recibo nada hace rato, me vuelvo a suscribir", { minutos: Math.round(minutosCallado) });
+        for (const suscripcion of suscripciones.splice(0)) suscripcion.cerrar();
+        for (const oficio of oficios) {
+          for (const filtro of oficio.filtros(ctx)) {
+            suscripciones.push(red.suscribir(filtro, (evento) => {
+              ultimoLatido = Date.now();
+              void procesar(oficio, evento);
+            }));
+          }
+        }
+        ultimoLatido = Date.now();
+      }, 60_000);
+      intervalos.push(vigilar);
+
       for (const oficio of oficios) {
         for (const filtro of oficio.filtros(ctx)) {
-          suscripciones.push(red.suscribir(filtro, (evento) => void procesar(oficio, evento)));
+          suscripciones.push(red.suscribir(filtro, (evento) => {
+            ultimoLatido = Date.now();
+            void procesar(oficio, evento);
+          }));
         }
         const periodico = oficio.periodico;
         if (periodico) {

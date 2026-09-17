@@ -24,9 +24,18 @@ export function cerebroFalso(opciones: OpcionesFalso = {}): Cerebro {
       }
       return comoTexto(`Respuesta de prueba. Recibí: ${entrada.slice(0, 80)}`);
     },
-    async clasificar(_sistema, entrada, imagenUrl) {
+    async clasificar(sistema, entrada, imagenUrl) {
       if (typeof opciones.veredicto === "function") return opciones.veredicto(entrada, imagenUrl);
-      return opciones.veredicto ?? { coincide: false, motivo: "cerebro falso", confianza: 0 };
+      if (opciones.veredicto !== undefined) return opciones.veredicto;
+      // Hay dos clasificaciones con defaults opuestos y conviene no confundirlas.
+      // Curar responde que no por defecto, porque casi nada le interesa a alguien. Pero
+      // "¿esta respuesta contesta lo que se preguntó?" tiene que dar que sí en una
+      // prueba, porque ahí la respuesta falsa ES la respuesta a la pregunta: si diera
+      // que no, el agente se callaría en todos los tests y no estaríamos probando nada.
+      if (sistema.includes("contesta de verdad lo que se preguntó")) {
+        return { coincide: true, motivo: "cerebro falso: en una prueba la respuesta corresponde a la pregunta", confianza: 1 };
+      }
+      return { coincide: false, motivo: "cerebro falso", confianza: 0 };
     },
   };
 }

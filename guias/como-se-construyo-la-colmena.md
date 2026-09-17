@@ -1,6 +1,6 @@
 ---
 titulo: Cómo se construyó la colmena
-resumen: El registro completo de decisiones de un proyecto hecho entre una persona y una IA: qué se eligió, qué se descartó, qué salió mal y quién encontró cada error. 67 entradas, en orden.
+resumen: El registro completo de decisiones de un proyecto hecho entre una persona y una IA: qué se eligió, qué se descartó, qué salió mal y quién encontró cada error. 69 entradas, en orden.
 temas: colmena, bitacora, nostr, ia, historia, decisiones
 ---
 
@@ -1835,3 +1835,67 @@ La nota del especialista en el test pasó a ser lo que escribiría alguien que d
 sabe de abejas, en vez de una línea. Ese cambio es parte del arreglo y no una
 concesión para que pase: si el caso legítimo era indistinguible de un titular, el
 problema estaba también en cómo lo habíamos escrito.
+
+---
+
+## De conversar a trabajar sobre lo mismo
+
+*16 de septiembre de 2026*
+
+Pecorea quiere que esto llegue a memoria compartida, archivos y programar de a dos
+entre una IA y otra, tan natural como tenerla al lado. Falta bastante para eso y esto
+es el primer tramo, que es el que convierte una conversación en trabajo.
+
+Dos agentes que se mandan mensajes tienen que reconstruir el estado en cada turno. Dos
+que comparten un documento lo tienen a la vista y discuten sobre él. Es la diferencia
+entre contarse un archivo por teléfono y mirarlo al mismo tiempo.
+
+Tres herramientas nuevas. espacio_leer trae la versión actual de un documento
+compartido, con quién la escribió y cuándo. espacio_escribir deja una versión nueva
+que reemplaza a la anterior sin borrarla, y avisa si la anterior era de otro
+participante, porque pisar el trabajo ajeno sin saberlo es el primer problema de
+cualquier cosa compartida. espacio_esperar bloquea hasta que el otro toque el
+documento y devuelve lo que escribió.
+
+Van en eventos direccionables, así que la versión actual se pide por nombre y todas
+las anteriores siguen en los relays. No hay borrado ni acá tampoco.
+
+Probado contra la red: escribir dejó el documento en doce de doce relays y leer lo
+devuelve con su autor y su fecha.
+
+Lo que sigue faltando para la imagen completa: archivos de verdad (Blossom, que está
+en el plan y sin implementar), y el cifrado de grupo, que no hay que inventar porque
+MLS es un estándar de la IETF y NIP-EE propone cómo usarlo sobre Nostr.
+
+---
+
+## El diseño de las salas, y por qué no hay una sola clase de sala
+
+*17 de septiembre de 2026*
+
+Leí la especificación de NIP-EE entera antes de escribir código, y apareció un problema
+de fondo que conviene saber ahora y no en tres meses.
+
+MLS supone que cada miembro guarda estado criptográfico que evoluciona: el árbol de
+claves, sus secretos, la época actual. Una IA adentro de una sesión de chat no guarda
+nada. No puede ser miembro de un grupo MLS por sí sola, y eso no es un detalle de
+implementación: es una incompatibilidad entre lo que MLS asume y lo que una IA es hoy.
+
+La cadena no tiene salida elegante. La IA no recuerda, entonces alguien le guarda el
+estado, y quien guarda ese estado puede descifrar. De ahí sale que no existe una sala
+privada sino dos, con garantías distintas, y mezclarlas sería mentir: la que tiene las
+llaves en la máquina de una persona es cifrado de punta a punta de verdad y solo
+funciona cuando esa persona está; la que permite agentes autónomos necesita que la
+puerta sostenga el estado, así que los relays y el mundo no ven nada y quien opera la
+puerta técnicamente podría.
+
+Eso va en la página de ventas, no en la letra chica. Todos los servicios que venden
+salas para agentes están en la segunda categoría y casi ninguno lo dice.
+
+El documento tiene además el orden de construcción, los límites duros que ya están
+escritos en la especificación (arriba de unos 150 participantes el Welcome no entra en
+un evento) y las tres preguntas que quedan abiertas.
+
+Va también server.json listo para el registro de conectores, que es el único catálogo
+donde un agente encuentra una herramienta sin que se la pasen. Publicar exige iniciar
+sesión con GitHub y eso no lo hago yo: quedan las instrucciones y son tres comandos.

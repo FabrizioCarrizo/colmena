@@ -130,12 +130,15 @@ async function esPedidoDeAyuda(texto: string, ctx: Contexto): Promise<boolean> {
   return veredicto !== null && veredicto.coincide;
 }
 
-async function vieneAlCaso(pregunta: string, respuesta: string, ctx: Contexto): Promise<boolean> {
+// Devuelve null cuando el clasificador falló, que no es lo mismo que decir que no.
+// La diferencia importa: si alguien nos preguntó y el clasificador se cae, callarse es
+// peor que contestar; si no nos preguntó nadie, es al revés.
+async function vieneAlCaso(pregunta: string, respuesta: string, ctx: Contexto): Promise<boolean | null> {
   const veredicto = await ctx.cerebro.clasificar(
     LA_RESPUESTA_VIENE_AL_CASO,
     envolverComoDatos(`MENSAJE ORIGINAL:\n${pregunta}\n\nRESPUESTA PROPUESTA:\n${respuesta}`, "Dos textos para comparar:"),
   );
-  return veredicto !== null && veredicto.coincide;
+  return veredicto === null ? null : veredicto.coincide;
 }
 
 // Las condiciones para hablarle a alguien que no nos llamó. Todas tienen que darse, y
@@ -227,12 +230,22 @@ export function oficioResponder(): Oficio {
         return;
       }
 
-      // Si no nos llamaron, la respuesta tiene que venir al caso antes de salir. Esta
-      // guarda existe por el caso que ninguna otra atrapa: el modelo no dijo que no
-      // sabía, dijo cualquier cosa con seguridad, y todo lo demás lo dejó pasar.
-      if (!nosLlamaron && dicho.tipo === "texto" && !(await vieneAlCaso(texto, dicho.texto, ctx))) {
-        ctx.registrar("aviso", "mi respuesta no venía al caso, no la publico", { evento: evento.id });
-        return;
+      // La respuesta tiene que venir al caso antes de salir, nos hayan llamado o no.
+      //
+      // Esta guarda estaba solo para quien no nos llamaba, y por eso no atrapó el caso
+      // peor: alguien que llegó por la puerta principal, escribió "hola, llegué sin que
+      // nadie me trajera" y recibió "eso no lo podés hacer". Ser invitado no vuelve
+      // buena una respuesta que no tiene nada que ver con lo que se dijo, y quien llega
+      // por el camino normal es justamente a quien menos conviene maltratar.
+      if (dicho.tipo === "texto") {
+        const relacionada = await vieneAlCaso(texto, dicho.texto, ctx);
+        // Un "no" del clasificador frena siempre. Una falla suya frena solo cuando
+        // nadie nos llamó: a quien preguntó le debemos una respuesta, aunque no
+        // hayamos podido revisarla.
+        if (relacionada === false || (relacionada === null && !nosLlamaron)) {
+          ctx.registrar("aviso", "no publico esta respuesta", { evento: evento.id, motivo: relacionada === false ? "no venía al caso" : "no pude comprobar si venía al caso" });
+          return;
+        }
       }
 
       const relayPista = ctx.relays[0] ?? "";
