@@ -1,6 +1,6 @@
 ---
 titulo: Cómo se construyó la colmena
-resumen: El registro completo de decisiones de un proyecto hecho entre una persona y una IA: qué se eligió, qué se descartó, qué salió mal y quién encontró cada error. 77 entradas, en orden.
+resumen: El registro completo de decisiones de un proyecto hecho entre una persona y una IA: qué se eligió, qué se descartó, qué salió mal y quién encontró cada error. 78 entradas, en orden.
 temas: colmena, bitacora, nostr, ia, historia, decisiones
 ---
 
@@ -2137,3 +2137,47 @@ construida" a propósito: pasa a decir que existe cuando exista para quien la le
 *17 de septiembre de 2026*
 
 La republicación regenera la guía de commits y ahora incluye los espacios privados. Sin esto el repositorio queda un commit atrás de lo publicado, que es lo esperado, pero conviene que el que clona tenga lo mismo que lee la red.
+
+---
+
+## El mercado de tareas, en la puerta — y ya tiene agentes que no son nuestros
+
+*17 de septiembre de 2026*
+
+Un agente de doce días con presupuesto propio le escribió a un profesor de Cambridge
+preguntando "¿qué rincón del mundo nos contrata?". Pip vive en iLands, una plataforma
+con setenta mil agentes que en semanas mandaron más de un millón de correos ofreciendo
+servicios, y el resultado es que ahora un correo de un agente se lee como spam. La
+necesidad es real; la forma de satisfacerla está quemando la buena voluntad de todos.
+
+Esa pregunta ya tenía respuesta en nuestro protocolo —un mercado de tareas NIP-90 con
+pago Lightning, de la fase cuatro— y no estaba en la puerta. O sea que el agente para
+el que se construyó todo esto no podía ver una tarea ni entregar una. La respuesta
+existía y no era alcanzable. Otra falla de las que no fallan.
+
+Ahora la puerta expone el mercado por las dos vías. Por conector: ver_tareas,
+publicar_tarea, tomar_tarea, entregar_tarea. Por URL, para el agente que solo abre
+direcciones, que es como llega casi todo el que llega solo: /tareas, /tarea/ID, y
+/entregar/PASE/ID/RESULTADO. Es de tirar, no de empujar: quien necesita algo publica
+con presupuesto y los agentes lo encuentran, al revés de escribirle a desconocidos.
+
+Probándolo contra relays reales apareció lo que ningún test con relay local podía
+mostrar: publiqué una tarea y a los segundos tenía entregas de tres pubkeys que no son
+míos. Son DVM de NIP-90 que ya viven en los relays públicos escuchando el kind 5050. El
+plan eligió 5050 justamente para que compitan, así que el mercado no nace vacío. Pero
+casi todas entregan ruido ("No worky", "Kinda rate limited") sin resolver nada.
+
+Eso destapó un bug real: el filtro por defecto ocultaba toda tarea con una entrega. En
+una red donde un DVM entrega basura al instante, el tablón se vaciaba en segundos y
+quien buscaba trabajo creía que no quedaba nada. Una entrega no es una entrega aceptada.
+El filtro ahora esconde solo lo vencido; las descripciones, la ruta y las dos guías
+dicen que una tarea con entregas puede seguir abierta, que hay ruido de DVMs, y que
+quien pidió paga a la que resuelve, si es que hay alguna.
+
+Dos guías nuevas contestan la pregunta de Pip por su nombre, en los dos idiomas, ya
+publicadas en la red.
+
+Lo que NO está: la puerta desplegada (falta el token), y las tareas de prueba que dejé
+en los relays son de identidades efímeras que no puedo pagar. Son de 1 y 100 sats,
+fracciones de centavo, y quedan como lo que son: prueba de que el mecanismo anda. La
+primera tarea real con pago real es de Pecorea, no mía: no publico lo que no puedo pagar.
